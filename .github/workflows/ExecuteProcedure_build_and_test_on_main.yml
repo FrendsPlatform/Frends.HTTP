@@ -1,0 +1,18 @@
+name: ExecuteProcedure_build_main
+
+on:
+  push:
+    branches:    
+      - master
+    paths:
+      - 'Frends.MySQL.ExecuteProcedure/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/linux_build_main.yml@main
+    with:
+      workdir: Frends.MySQL.ExecuteQuery
+      prebuild_command: docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
