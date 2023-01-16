@@ -41,33 +41,33 @@ public class Options
     /// Path to the Client Certificate when using a file as the Certificate Source, pfx (pkcs12) files are recommended. For other supported formats, see
     /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2collection.import?view=netframework-4.7.1
     /// </summary>
-    [UIHint(nameof(Frends.Web.Authentication), "", Authentication.ClientCertificate)]
+    [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     public string ClientCertificateFilePath { get; set; }
 
     /// <summary>
     /// Client certificate bytes as a base64 encoded string when using a string as the Certificate Source , pfx (pkcs12) format is recommended. For other supported formates, see
     /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2collection.import?view=netframework-4.7.1
     /// </summary>
-    [UIHint(nameof(Frends.Web.Authentication), "", Authentication.ClientCertificate)]
+    [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     public string ClientCertificateInBase64 { get; set; }
 
     /// <summary>
     /// Key phrase (password) to access the certificate data when using a string or file as the Certificate Source
     /// </summary>
     [PasswordPropertyText]
-    [UIHint(nameof(Frends.Web.Authentication), "", Authentication.ClientCertificate)]
+    [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     public string ClientCertificateKeyPhrase { get; set; }
 
     /// <summary>
     /// Thumbprint for using client certificate authentication.
     /// </summary>
-    [UIHint(nameof(Frends.Web.Authentication), "", Authentication.ClientCertificate)]
+    [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     public string CertificateThumbprint { get; set; }
 
     /// <summary>
     /// Should the entire certificate chain be loaded from the certificate store and included in the request. Only valid when using Certificate Store as the Certificate Source 
     /// </summary>
-    [UIHint(nameof(Frends.Web.Authentication), "", Authentication.ClientCertificate)]
+    [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     [DefaultValue(true)]
     public bool LoadEntireChainForCertificate { get; set; }
 
