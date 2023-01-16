@@ -10,7 +10,7 @@
 	<PackageTags>Frends</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Description>Frends task to execute procedure to MySQL.</Description>
+	<Description>Frends task to execute HTTP Request.</Description>
 	<PackageProjectUrl>https://frends.com/</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/FrendsPlatform/Frends.Salesforce/tree/main/Frends.MySQL.ExecuteProcedure</RepositoryUrl>
   </PropertyGroup>
