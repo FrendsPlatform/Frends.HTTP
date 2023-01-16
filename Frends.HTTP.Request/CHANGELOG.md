@@ -1,5 +1,5 @@
 # Changelog
 
-## [1.0.0] - 2022-08-10
+## [1.0.0] - 2023-01-16
 ### Added
-- Initial implementation of Frends.MySQL.ExecuteProcedure.
+- Initial implementation of Frends.HTTP.Request.

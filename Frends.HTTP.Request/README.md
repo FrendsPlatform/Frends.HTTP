@@ -1,10 +1,10 @@
-# Frends.MySQL.ExecuteProcedure
-Frends Task for Executing a Procedure in MySQL.
+# Frends.HTTP.Request
+Frends Task for Executing a HTTP Request.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) 
-[![Build](https://github.com/FrendsPlatform/Frends.MySQL/actions/workflows/ExecuteProcedure_build_and_test_on_main.yml/badge.svg)](https://github.com/FrendsPlatform/Frends.MySQL/actions)
-![MyGet](https://img.shields.io/myget/frends-tasks/v/Frends.MySQL.ExecuteProcedure)
-![Coverage](https://app-github-custom-badges.azurewebsites.net/Badge?key=FrendsPlatform/Frends.MySQL/Frends.MySQL.ExecuteProcedure|main)
+[![Build](https://github.com/FrendsPlatform/Frends.HTTP/actions/workflows/Request_build_and_test_on_main.yml/badge.svg)](https://github.com/FrendsPlatform/Frends.HTTP/actions)
+![MyGet](https://img.shields.io/myget/frends-tasks/v/Frends.HTTP.Request)
+![Coverage](https://app-github-custom-badges.azurewebsites.net/Badge?key=FrendsPlatform/Frends.HTTP/Frends.HTTP.Request|main)
 
 Returns the count of affected rows.
 
@@ -20,9 +20,6 @@ Rebuild the project
 `dotnet build`
 
 Run tests
-
-Setup MySQL to docker: `docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=my-secret-pw -d mysql`
-`dotnet test`
 
 Create a NuGet package
 
