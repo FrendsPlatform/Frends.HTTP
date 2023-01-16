@@ -9,24 +9,29 @@ namespace Frends.HTTP.Request.Definitions;
 public class Input
 {
     /// <summary>
-    /// Mysql connection string
+    /// The HTTP Method to be used with the request.
     /// </summary>
-    /// <example>server=server;user=user;database=db;password=pw;</example>
-    [PasswordPropertyText]
-    [DefaultValue("server=server;user=user;database=db;password=pw;")]
-    public string ConnectionString { get; set; }
+    /// <example>GET</example>
+    public Method Method { get; set; }
 
     /// <summary>
-    ///  SQL statement to execute at the data source. Usually query or name of a stored procedure. https://dev.mysql.com/doc/dev/connector-net/8.0/html/P_MySql_Data_MySqlClient_MySqlCommand_CommandText.htm
+    /// The URL with protocol and path. You can include query parameters directly in the url.
     /// </summary>
-    /// <example>SELECT ColumnName FROM TableName</example>
-    [DisplayFormat(DataFormatString = "Sql")]
-    [DefaultValue("ProcedureName")]
-    public string Query { get; set; }
+    /// <example>https://example.org/path/to</example>
+    [DefaultValue("https://example.org/path/to")]
+    [DisplayFormat(DataFormatString = "Text")]
+    public string Url { get; set; }
 
     /// <summary>
-    /// Parameters for the database query
+    /// The message text to be sent with the request.
     /// </summary>
-    /// <example>Name: ValueName</example>
-    public Parameter[] Parameters { get; set; }
+    /// <example>{ "Body": "Message" }</example>
+    [UIHint(nameof(Method), "", Method.POST, Method.DELETE, Method.PATCH, Method.PUT)]
+    public string Message { get; set; }
+
+    /// <summary>
+    /// List of HTTP headers to be added to the request.
+    /// </summary>
+    /// <example>Name: Header, Value: HeaderValue</example>
+    public Header[] Headers { get; set; }
 }
