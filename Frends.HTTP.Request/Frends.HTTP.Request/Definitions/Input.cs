@@ -15,6 +15,13 @@ public class Input
     public Method Method { get; set; }
 
     /// <summary>
+    /// The HTTP result method to be used with the request.
+    /// </summary>
+    /// <example>REST</example>
+    [DefaultValue(ResultMethod.HTTP)]
+    public ResultMethod ResultMethod { get; set; }
+
+    /// <summary>
     /// The URL with protocol and path. You can include query parameters directly in the url.
     /// </summary>
     /// <example>https://example.org/path/to</example>

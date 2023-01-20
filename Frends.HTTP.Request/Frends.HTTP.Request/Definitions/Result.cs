@@ -1,4 +1,6 @@
-﻿namespace Frends.HTTP.Request.Definitions;
+﻿using System.Collections.Generic;
+
+namespace Frends.HTTP.Request.Definitions;
 
 /// <summary>
 /// Result class
@@ -6,13 +8,34 @@
 public class Result
 {
     /// <summary>
-    /// Count of affected rows
+    /// Body of response
     /// </summary>
-    /// <example>10</example>
-    public int AffectedRows { get; private set; }
+    /// <example>{"id": "abcdefghijkl123456789",  "success": true,  "errors": []}</example>
+    public dynamic Body { get; private set; }
 
-    internal Result(int affectedRows)
+    /// <summary>
+    /// Headers of response
+    /// </summary>
+    /// <example>{[ "content-type": "application/json", ... ]}</example>
+    public Dictionary<string, string> Headers { get; private set; }
+
+    /// <summary>
+    /// Statuscode of response
+    /// </summary>
+    /// <example>200</example>
+    public int StatusCode { get; private set; }
+
+    internal Result(string body, Dictionary<string, string> headers, int statusCode)
     {
-        AffectedRows = affectedRows;
+        Body = body;
+        Headers = headers;
+        StatusCode = statusCode;
+    }
+
+    internal Result(object body, Dictionary<string, string> headers, int statusCode)
+    {
+        Body = body;
+        Headers = headers;
+        StatusCode = statusCode;
     }
 }
