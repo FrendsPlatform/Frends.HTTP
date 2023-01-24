@@ -40,6 +40,8 @@ public class HTTP
         CancellationToken cancellationToken
     )
     {
+        if(string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
+
         var httpClient = GetHttpClientForOptions(options);
         var headers = GetHeaderDictionary(input.Headers, options);
 

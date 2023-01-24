@@ -65,6 +65,26 @@ public class UnitTests
     }
 
     [TestMethod]
+    public void RequestShouldThrowExceptionIfUrlEmpty()
+    {
+        const string expectedReturn = @"'FooBar'";
+
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = "",
+            Headers = new Header[0],
+            Message = ""
+        };
+        var options = new Options { ConnectionTimeoutSeconds = 60, ThrowExceptionOnErrorResponse = true };
+
+        var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await HTTP.Request(input, options, CancellationToken.None));
+
+        Assert.IsTrue(ex.Message.Contains("Url can not be empty."));
+    }
+
+    [TestMethod]
     public void RequestShuldThrowExceptionIfOptionIsSet()
     {
         const string expectedReturn = @"'FooBar'";
