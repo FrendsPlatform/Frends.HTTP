@@ -26,24 +26,6 @@ namespace Frends.HTTP.Request;
 /// </summary>
 public class HTTP
 {
-    #region Test methods
-    // For tests
-    internal static readonly ObjectCache ClientCache = MemoryCache.Default;
-
-    private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
-
-    internal static void ClearClientCache()
-    {
-        var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
-        foreach (var cacheKey in cacheKeys)
-        {
-            ClientCache.Remove(cacheKey);
-        }
-    }
-
-    internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
-    #endregion
-
     /// <summary>
     /// Execute a HTTP or REST request.
     /// [Documentation](https://tasks.frends.com/tasks#frends-tasks/Frends.HTTP.Request)
@@ -252,6 +234,24 @@ public class HTTP
             return response;
         }
     }
+
+    #region Test methods
+    // For tests
+    internal static readonly ObjectCache ClientCache = MemoryCache.Default;
+
+    private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
+
+    internal static void ClearClientCache()
+    {
+        var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
+        foreach (var cacheKey in cacheKeys)
+        {
+            ClientCache.Remove(cacheKey);
+        }
+    }
+
+    internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
+    #endregion
 }
 
 #region Helper methods
