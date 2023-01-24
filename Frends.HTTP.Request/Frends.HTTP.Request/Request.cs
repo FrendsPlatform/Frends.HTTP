@@ -24,6 +24,7 @@ namespace Frends.HTTP.Request;
 /// </summary>
 public class HTTP
 {
+    #region Test methods
     // For tests
     public static readonly ObjectCache ClientCache = MemoryCache.Default;
 
@@ -37,11 +38,13 @@ public class HTTP
             ClientCache.Remove(cacheKey);
         }
     }
+
     // For tests
     public static IHttpClientFactory ClientFactory = new HttpClientFactory();
+    #endregion
 
     /// <summary>
-    /// Execute a stored procedure to MySQL.
+    /// Execute a HTTP or REST request.
     /// [Documentation](https://tasks.frends.com/tasks#frends-tasks/Frends.HTTP.Request)
     /// </summary>
     /// <param name="input"></param>
@@ -250,10 +253,7 @@ public class HTTP
     }
 }
 
-public interface IHttpClientFactory
-{
-    HttpClient CreateClient(Options options);
-}
+#region Helper methods
 public class HttpClientFactory : IHttpClientFactory
 {
     public HttpClient CreateClient(Options options)
@@ -393,4 +393,5 @@ public static class Extensions
             return certificates;
         }
     }
+    #endregion
 }
