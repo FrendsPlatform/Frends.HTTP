@@ -12,7 +12,6 @@ using Assert = NUnit.Framework.Assert;
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using RestSharp;
 using Newtonsoft.Json.Linq;
 
 namespace Frends.HTTP.Request.Tests;
