@@ -12,6 +12,7 @@ public class Input
     /// The HTTP Method to be used with the request.
     /// </summary>
     /// <example>GET</example>
+    [DefaultValue(Method.GET)]
     public Method Method { get; set; }
 
     /// <summary>
