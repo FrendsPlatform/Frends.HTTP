@@ -16,7 +16,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Runtime.Caching;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
 namespace Frends.HTTP.Request;
 
 /// <summary>
@@ -26,11 +28,11 @@ public class HTTP
 {
     #region Test methods
     // For tests
-    public static readonly ObjectCache ClientCache = MemoryCache.Default;
+    internal static readonly ObjectCache ClientCache = MemoryCache.Default;
 
     private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
 
-    public static void ClearClientCache()
+    internal static void ClearClientCache()
     {
         var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
         foreach (var cacheKey in cacheKeys)
@@ -39,8 +41,7 @@ public class HTTP
         }
     }
 
-    // For tests
-    public static IHttpClientFactory ClientFactory = new HttpClientFactory();
+    internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
     #endregion
 
     /// <summary>
@@ -254,7 +255,7 @@ public class HTTP
 }
 
 #region Helper methods
-public class HttpClientFactory : IHttpClientFactory
+internal class HttpClientFactory : IHttpClientFactory
 {
     public HttpClient CreateClient(Options options)
     {
@@ -264,7 +265,7 @@ public class HttpClientFactory : IHttpClientFactory
     }
 }
 
-public static class Extensions
+internal static class Extensions
 {
     internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
     {
