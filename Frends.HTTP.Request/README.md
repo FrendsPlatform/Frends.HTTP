@@ -6,7 +6,7 @@ Frends Task for Executing a HTTP Request.
 ![MyGet](https://img.shields.io/myget/frends-tasks/v/Frends.HTTP.Request)
 ![Coverage](https://app-github-custom-badges.azurewebsites.net/Badge?key=FrendsPlatform/Frends.HTTP/Frends.HTTP.Request|main)
 
-Returns the count of affected rows.
+Returns the object of body, headers and statuscode.
 
 ## Installing
 
