@@ -192,9 +192,9 @@ public class UnitTests
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
     }
-    
+
     [TestMethod]
-    public async Task RequestShouldAddClientCertificate()
+    public void RequestShouldAddClientCertificate()
     {
         const string thumbprint = "ABCD";
         var input = new Input
@@ -261,7 +261,7 @@ public class UnitTests
     }
     
     [TestMethod]
-    public async Task RestRequestShouldThrowIfReturnIsNotValidJson()
+    public void RestRequestShouldThrowIfReturnIsNotValidJson()
     {
         var input = new Input
         { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };

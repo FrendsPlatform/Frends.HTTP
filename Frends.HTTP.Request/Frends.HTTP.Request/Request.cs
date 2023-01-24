@@ -33,7 +33,7 @@ public class HTTP
     /// <param name="input"></param>
     /// <param name="options"></param>
     /// <param name="cancellationToken"/>
-    /// <returns>Object { dynamic Body, Dictionary<string, string> Headers, int StatusCode }</returns>
+    /// <returns>Object { dynamic Body, Dictionary(string, string) Headers, int StatusCode }</returns>
     public static async Task<Result> Request(
         [PropertyTab] Input input,
         [PropertyTab] Options options,
