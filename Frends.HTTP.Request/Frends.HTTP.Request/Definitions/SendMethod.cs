@@ -1,25 +1,24 @@
-﻿namespace Frends.HTTP.Request.Definitions
+﻿namespace Frends.HTTP.Request.Definitions;
+
+/// <summary>
+/// Allowed methods for sending content
+/// </summary>
+public enum SendMethod
 {
     /// <summary>
-    /// Allowed methods for sending content
+    /// POST Request.
     /// </summary>
-    public enum SendMethod
-    {
-        /// <summary>
-        /// POST Request.
-        /// </summary>
-        POST,
-        /// <summary>
-        /// PUT Request.
-        /// </summary>
-        PUT,
-        /// <summary>
-        /// PATCH Request.
-        /// </summary>
-        PATCH,
-        /// <summary>
-        /// DELETE Request.
-        /// </summary>
-        DELETE
-    }
+    POST,
+    /// <summary>
+    /// PUT Request.
+    /// </summary>
+    PUT,
+    /// <summary>
+    /// PATCH Request.
+    /// </summary>
+    PATCH,
+    /// <summary>
+    /// DELETE Request.
+    /// </summary>
+    DELETE
 }

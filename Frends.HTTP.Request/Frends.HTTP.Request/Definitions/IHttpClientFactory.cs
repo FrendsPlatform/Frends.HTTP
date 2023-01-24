@@ -1,15 +1,14 @@
 ﻿using System.Net.Http;
 
-namespace Frends.HTTP.Request.Definitions
+namespace Frends.HTTP.Request.Definitions;
+
+/// <summary>
+/// Http Client Factory Interface
+/// </summary>
+public interface IHttpClientFactory
 {
     /// <summary>
-    /// Http Client Factory Interface
+    /// Create client
     /// </summary>
-    public interface IHttpClientFactory
-    {
-        /// <summary>
-        /// Create client
-        /// </summary>
-        HttpClient CreateClient(Options options);
-    }
+    HttpClient CreateClient(Options options);
 }
