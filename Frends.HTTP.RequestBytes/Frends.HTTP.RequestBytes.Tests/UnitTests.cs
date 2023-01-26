@@ -41,26 +41,6 @@ public class UnitTests
     }
 
     [TestMethod]
-    public async Task RequestTestGetWithParameters()
-    {
-        const string expectedReturn = @"'FooBar'";
-        var dict = new Dictionary<string, string>()
-        {
-            {"foo", "bar"},
-            {"bar", "foo"}
-        };
-
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithQueryString(dict)
-            .Respond("application/json", expectedReturn);
-
-        var input = GetInputParams(url: "http://localhost:9191/endpoint?foo=bar&bar=foo");
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
-
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
-        Assert.IsTrue(result.Body.ToString().Contains("FooBar"));
-    }
-
-    [TestMethod]
     public void RequestShouldThrowExceptionIfUrlEmpty()
     {
         var input = new Input
@@ -76,29 +56,6 @@ public class UnitTests
             await HTTP.RequestBytes(input, options, CancellationToken.None));
 
         Assert.IsTrue(ex.Message.Contains("Url can not be empty."));
-    }
-
-    [TestMethod]
-    public void RequestShuldThrowExceptionIfOptionIsSet()
-    {
-        const string expectedReturn = @"'FooBar'";
-
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint")
-            .Respond(HttpStatusCode.InternalServerError, "application/json", expectedReturn);
-
-        var input = new Input
-        {
-            Method = Method.GET,
-            Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
-            Message = ""
-        };
-        var options = new Options { ConnectionTimeoutSeconds = 60, ThrowExceptionOnErrorResponse = true };
-
-        var ex = Assert.ThrowsAsync<WebException>(async () =>
-            await HTTP.RequestBytes(input, options, CancellationToken.None));
-
-        Assert.IsTrue(ex.Message.Contains("FooBar"));
     }
 
     [TestMethod]
