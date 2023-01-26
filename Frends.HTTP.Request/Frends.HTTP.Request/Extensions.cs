@@ -5,8 +5,9 @@ using System.Net.Http;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using Frends.HTTP.Request.Definitions;
 
-namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.Request;
 
 internal static class Extensions
 {

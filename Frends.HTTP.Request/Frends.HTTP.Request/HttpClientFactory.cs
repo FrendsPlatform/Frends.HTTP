@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
+using Frends.HTTP.Request.Definitions;
 
-namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.Request;
 
 internal class HttpClientFactory : IHttpClientFactory
 {
