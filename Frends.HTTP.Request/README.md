@@ -21,6 +21,8 @@ Rebuild the project
 
 Run tests
 
+`dotnet test`
+
 Create a NuGet package
 
 `dotnet pack --configuration Release`
