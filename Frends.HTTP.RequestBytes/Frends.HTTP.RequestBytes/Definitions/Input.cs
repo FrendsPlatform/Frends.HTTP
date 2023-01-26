@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.RequestBytes.Definitions;
 
 /// <summary>
 /// Input class
@@ -14,13 +14,6 @@ public class Input
     /// <example>GET</example>
     [DefaultValue(Method.GET)]
     public Method Method { get; set; }
-
-    /// <summary>
-    /// The HTTP result method to be used with the request.
-    /// </summary>
-    /// <example>REST</example>
-    [DefaultValue(ResultMethod.HTTP)]
-    public ResultMethod ResultMethod { get; set; }
 
     /// <summary>
     /// The URL with protocol and path. You can include query parameters directly in the url.

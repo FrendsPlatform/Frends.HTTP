@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Http.Headers;
 
-namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.RequestBytes.Definitions;
 
 /// <summary>
 /// Result class
@@ -11,7 +13,19 @@ public class Result
     /// Body of response
     /// </summary>
     /// <example>{"id": "abcdefghijkl123456789",  "success": true,  "errors": []}</example>
-    public dynamic Body { get; private set; }
+    public byte[] Body { get; private set; }
+
+    /// <summary>
+    /// Body size of response
+    /// </summary>
+    /// <example>10.0</example>
+    public double BodySizeInMegaBytes => Math.Round((Body?.Length / (1024 * 1024d) ?? 0), 3);
+
+    /// <summary>
+    /// Header type of response
+    /// </summary>
+    /// <example>10.0</example>
+    public MediaTypeHeaderValue ContentType { get; private set; }
 
     /// <summary>
     /// Headers of response
@@ -25,17 +39,11 @@ public class Result
     /// <example>200</example>
     public int StatusCode { get; private set; }
 
-    internal Result(string body, Dictionary<string, string> headers, int statusCode)
+    internal Result(byte[] body, MediaTypeHeaderValue contentType, Dictionary<string, string> headers, int statusCode)
     {
         Body = body;
         Headers = headers;
         StatusCode = statusCode;
-    }
-
-    internal Result(object body, Dictionary<string, string> headers, int statusCode)
-    {
-        Body = body;
-        Headers = headers;
-        StatusCode = statusCode;
+        ContentType = contentType;
     }
 }

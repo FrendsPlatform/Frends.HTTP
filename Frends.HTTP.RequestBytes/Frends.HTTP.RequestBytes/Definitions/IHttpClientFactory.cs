@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
 
-namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.RequestBytes.Definitions;
 
 /// <summary>
 /// Http Client Factory Interface

@@ -1,5 +1,4 @@
-﻿using Frends.HTTP.Request.Definitions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -17,10 +16,10 @@ using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.Http;
+using Frends.HTTP.RequestBytes.Definitions;
 
-[assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
-namespace Frends.HTTP.Request;
+[assembly: InternalsVisibleTo("Frends.HTTP.RequestBytes.Tests")]
+namespace Frends.HTTP.RequestBytes;
 
 /// <summary>
 /// Task class.
@@ -37,6 +36,8 @@ public class HTTP
     /// <returns>Object { dynamic Body, Dictionary(string, string) Headers, int StatusCode }</returns>
     public static async Task<object> RequestBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
+
         var httpClient = GetHttpClientForOptions(options);
         var headers = GetHeaderDictionary(input.Headers, options);
 
@@ -52,16 +53,7 @@ public class HTTP
                     cancellationToken)
                 .ConfigureAwait(false))
             {
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var response = new HttpByteResponse()
-                {
-                    BodyBytes = await responseMessage.Content.ReadAsByteArrayAsync().ConfigureAwait(false),
-                    ContentType = responseMessage.Content.Headers.ContentType,
-                    StatusCode = (int)responseMessage.StatusCode,
-                    Headers = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers)
-                };
+                var response = new Result(await responseMessage.Content.ReadAsByteArrayAsync().ConfigureAwait(false), responseMessage.Content.Headers.ContentType, GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers), (int)responseMessage.StatusCode);
 
                 if (!responseMessage.IsSuccessStatusCode && options.ThrowExceptionOnErrorResponse)
                 {

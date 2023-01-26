@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Frends.HTTP.Request\Frends.HTTP.Request.csproj" />
+    <ProjectReference Include="..\Frends.HTTP.RequestBytes\Frends.HTTP.RequestBytes.csproj" />
   </ItemGroup>
 
 </Project>

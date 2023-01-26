@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Frends.HTTP.RequestBytes", "Frends.HTTP.RequestBytes\Frends.HTTP.RequestBytes.csproj", "{35C305C0-8108-4A98-BB1D-AFE5C926239E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Frends.HTTP.RequestBytes.Tests", "Frends.HTTP.RequestBytes.Tests\Frends.HTTP.RequestBytes.Tests.csproj", "{8CA92187-8E4F-4414-803B-EC899479022E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{35C305C0-8108-4A98-BB1D-AFE5C926239E} = {35C305C0-8108-4A98-BB1D-AFE5C926239E}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{78F7F22E-6E20-4BCE-8362-0C558568B729}"
 	ProjectSection(SolutionItems) = preProject

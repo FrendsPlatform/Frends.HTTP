@@ -1,4 +1,4 @@
-﻿namespace Frends.HTTP.Request.Definitions;
+﻿namespace Frends.HTTP.RequestBytes.Definitions;
 
 /// <summary>
 /// Certificate source.

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.RequestBytes.Definitions;
 
 /// <summary>
 /// Options class
