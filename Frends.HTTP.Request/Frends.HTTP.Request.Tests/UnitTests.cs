@@ -30,7 +30,7 @@ public class UnitTests
         HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
     }
 
-    private Input GetInputParams(Method.Method method = Method.Method.GET, string url = BasePath, string message = "",
+    private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = BasePath, string message = "",
         params Header[] headers)
     {
         return new Input
@@ -59,7 +59,6 @@ public class UnitTests
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
-        Console.WriteLine(result.Body.ToString());
 
         Assert.IsTrue(result.Body.Contains("FooBar"));
     }
@@ -67,8 +66,6 @@ public class UnitTests
     [TestMethod]
     public void RequestShouldThrowExceptionIfUrlEmpty()
     {
-        const string expectedReturn = @"'FooBar'";
-
         var input = new Input
         {
             Method = Method.Method.GET,
@@ -159,6 +156,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -182,9 +180,10 @@ public class UnitTests
 
         _mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
             .Respond("application/json", expectedReturn);
-        await HTTP.Request(input, options, CancellationToken.None);
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.IsTrue(result.Body.Contains("FooBar"));
     }
     
     [TestMethod]
@@ -208,9 +207,10 @@ public class UnitTests
 
         _mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
             .Respond("application/json", expectedReturn);
-        await HTTP.Request(input, options, CancellationToken.None);
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -313,7 +313,7 @@ public class UnitTests
     }
     
     [TestMethod]
-    public async Task PatchShouldComeThroug()
+    public async Task PatchShouldComeThrough()
     {
         var message = "åäö";
 
@@ -330,9 +330,10 @@ public class UnitTests
         _mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
             .Respond("text/plain", "foo åäö");
 
-        await HTTP.Request(input, options, CancellationToken.None);
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.IsTrue(result.Body.Contains("foo åäö"));
     }
     
     [TestMethod]
@@ -356,9 +357,10 @@ public class UnitTests
         _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType).WithContent(requestMessage)
             .Respond("text/plain", "foo åäö");
 
-        await HTTP.Request(input, options, CancellationToken.None);
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.IsTrue(result.Body.Contains("foo åäö"));
     }
 }
 
