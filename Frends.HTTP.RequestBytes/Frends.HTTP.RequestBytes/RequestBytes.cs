@@ -17,6 +17,7 @@ using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
+using Microsoft.AspNetCore.Http;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
 namespace Frends.HTTP.Request;
@@ -27,21 +28,15 @@ namespace Frends.HTTP.Request;
 public class HTTP
 {
     /// <summary>
-    /// Execute a HTTP or REST request.
-    /// [Documentation](https://tasks.frends.com/tasks#frends-tasks/Frends.HTTP.Request)
+    /// HTTP request with byte return type
+    /// [Documentation](https://tasks.frends.com/tasks#frends-tasks/Frends.HTTP.RequestBytes)
     /// </summary>
     /// <param name="input"></param>
     /// <param name="options"></param>
     /// <param name="cancellationToken"/>
     /// <returns>Object { dynamic Body, Dictionary(string, string) Headers, int StatusCode }</returns>
-    public static async Task<Result> Request(
-        [PropertyTab] Input input,
-        [PropertyTab] Options options,
-        CancellationToken cancellationToken
-    )
+    public static async Task<object> RequestBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
     {
-        if(string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
-
         var httpClient = GetHttpClientForOptions(options);
         var headers = GetHeaderDictionary(input.Headers, options);
 
@@ -60,29 +55,17 @@ public class HTTP
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                dynamic response;
-
-                switch (input.ResultMethod) {
-                    case ResultMethod.HTTP:
-                        var hbody = responseMessage.Content != null ? await responseMessage.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false) : null;
-                        var hstatusCode = (int)responseMessage.StatusCode;
-                        var hheaders = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content?.Headers);
-                        response = new Result(hbody, hheaders, hstatusCode);
-                        break;
-                    case ResultMethod.REST:
-                        var rbody = TryParseRequestStringResultAsJToken(await responseMessage.Content.ReadAsStringAsync()
-                        .ConfigureAwait(false));
-                        var rstatusCode = (int)responseMessage.StatusCode;
-                        var rheaders = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
-                        response = new Result(rbody, rheaders, rstatusCode);
-                        break;
-                    default: throw new InvalidOperationException();
-                }
+                var response = new HttpByteResponse()
+                {
+                    BodyBytes = await responseMessage.Content.ReadAsByteArrayAsync().ConfigureAwait(false),
+                    ContentType = responseMessage.Content.Headers.ContentType,
+                    StatusCode = (int)responseMessage.StatusCode,
+                    Headers = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers)
+                };
 
                 if (!responseMessage.IsSuccessStatusCode && options.ThrowExceptionOnErrorResponse)
                 {
-                    throw new WebException(
-                        $"Request to '{input.Url}' failed with status code {(int)responseMessage.StatusCode}. Response body: {response.Body}");
+                    throw new WebException($"Request to '{input.Url}' failed with status code {(int)responseMessage.StatusCode}.");
                 }
 
                 return response;
