@@ -57,9 +57,6 @@ public class HTTP
                     cancellationToken)
                 .ConfigureAwait(false))
             {
-
-                cancellationToken.ThrowIfCancellationRequested();
-
                 dynamic response;
 
                 switch (input.ResultMethod) {
@@ -184,7 +181,7 @@ public class HTTP
         cancellationToken.ThrowIfCancellationRequested();
 
         // Only POST, PUT, PATCH and DELETE can have content, otherwise the HttpClient will fail
-        var isContentAllowed = Definitions.Method.TryParse(method, ignoreCase: true, result: out SendMethod _);
+        var isContentAllowed = Enum.TryParse(method, ignoreCase: true, result: out SendMethod _);
 
         using (var request = new HttpRequestMessage(new HttpMethod(method), new Uri(url))
         {
