@@ -13,6 +13,8 @@ using Google.Protobuf.WellKnownTypes;
 using System.Xml.Linq;
 using Method = Frends.HTTP.RequestBytes.Definitions.Method;
 using System.Net;
+using System.Collections;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace Frends.HTTP.RequestBytes.Tests;
 
@@ -171,7 +173,6 @@ public class UnitTests
         _mockHttpMessageHandler.When($"{_basePath}/endpoint")
             .Respond(HttpStatusCode.InternalServerError, "application/octet-stream", "FooBar");
 
-
         var input = new Input
         {
             Method = Method.GET,
@@ -184,6 +185,141 @@ public class UnitTests
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         Assert.AreEqual(expectedReturn, result.Body);
+    }
+
+    [TestMethod]
+    public async Task RequestShouldAddBasicAuthHeaders()
+    {
+        var expectedReturn = Encoding.ASCII.GetBytes("FooBar");
+
+        var input = new Input
+        {
+            Method = Method.GET,
+            Url = " http://localhost:9191/endpoint",
+            Headers = new Header[0],
+            Message = ""
+        };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            ThrowExceptionOnErrorResponse = true,
+            Authentication = Authentication.Basic,
+            Username = "Foo",
+            Password = "Bar"
+        };
+        var sentAuthValue =
+            "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
+
+        _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", sentAuthValue)
+            .Respond("application/octet-stream", "FooBar");
+
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
+
+        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.AreEqual(expectedReturn, result.Body);
+    }
+
+    [TestMethod]
+    public async Task RequestShouldAddOAuthBearerHeader()
+    {
+        var expectedReturn = Encoding.ASCII.GetBytes("FooBar");
+
+        var input = new Input
+        {
+            Method = Method.GET,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[0],
+            Message = ""
+        };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            Authentication = Authentication.OAuth,
+            Token = "fooToken"
+        };
+
+        _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
+            .Respond("application/octet-stream", "FooBar");
+        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+
+        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.AreEqual(expectedReturn, result.Body);
+    }
+
+    [TestMethod]
+    public async Task AuthorizationHeaderShouldOverrideOption()
+    {
+        var expectedReturn = Encoding.ASCII.GetBytes("FooBar");
+
+        var input = new Input
+        {
+            Method = Method.GET,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new[] { new Header() { Name = "Authorization", Value = "Basic fooToken" } },
+            Message = ""
+        };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            Authentication = Authentication.OAuth,
+            Token = "barToken"
+        };
+
+        _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
+            .Respond("application/octet-stream", "FooBar");
+        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+
+        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.AreEqual(expectedReturn, result.Body);
+    }
+
+    [TestMethod]
+    public async Task PatchShouldComeThrough()
+    {
+        var message = "foo åäö";
+
+        var input = new Input
+        {
+            Method = Method.PATCH,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[] { },
+            Message = message
+        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        _mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
+            .Respond("application/octet-stream", message);
+
+        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+
+        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.AreEqual(message, Encoding.UTF8.GetString(result.Body));
+    }
+
+    [TestMethod]
+    public async Task RequestShouldSetEncodingWithContentTypeCharsetIgnoringCase()
+    {
+        var codePageName = "iso-8859-1";
+        var requestMessage = "åäö!";
+        var expectedContentType = $"text/plain; charset={codePageName}";
+
+        var contentType = new Header { Name = "cONTENT-tYpE", Value = expectedContentType };
+        var input = new Input
+        {
+            Method = Method.POST,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[1] { contentType },
+            Message = requestMessage
+        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType).WithContent(requestMessage)
+            .Respond("application/octet-stream", "foo åäö");
+
+        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+
+        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.AreEqual("foo åäö", Encoding.UTF8.GetString(result.Body));
     }
 }
 
