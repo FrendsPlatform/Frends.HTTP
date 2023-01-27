@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -7,9 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RichardSzalay.MockHttp;
 using Assert = NUnit.Framework.Assert;
-using System.Net;
-using System.Text;
-using System.Reflection;
 using Frends.HTTP.RequestBytes.Definitions;
 
 namespace Frends.HTTP.RequestBytes.Tests;
@@ -102,8 +98,7 @@ public class UnitTests
     [TestMethod]
     public async Task HttpRequestBytesShouldBeAbleToReturnBinary()
     {
-        var testFileUriPath = Path.Combine(Path.GetDirectoryName(path: Assembly.GetExecutingAssembly().CodeBase),
-            "TestFiles\\frends_favicon.png");
+        var testFileUriPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"../../../TestData/frends_favicon.png");
         string localTestFilePath = new Uri(testFileUriPath).LocalPath;
         var input = new Input
         { Method = Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "" };
@@ -115,8 +110,8 @@ public class UnitTests
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        Assert.NotNull(result.BodyBytes);
-        Assert.AreEqual(actualFileBytes, result.BodyBytes);
+        Assert.NotNull(result.Body);
+        Assert.AreEqual(actualFileBytes, result.Body);
     }
 }
 
