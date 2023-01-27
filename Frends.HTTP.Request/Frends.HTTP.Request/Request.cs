@@ -11,9 +11,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Diagnostics;
-using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.RegularExpressions;
 using System.Net.Http;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
@@ -26,6 +23,19 @@ namespace Frends.HTTP.Request;
 /// </summary>
 public class HTTP
 {
+    internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
+    internal static readonly ObjectCache ClientCache = MemoryCache.Default;
+    private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
+
+    internal static void ClearClientCache()
+    {
+        var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
+        foreach (var cacheKey in cacheKeys)
+        {
+            ClientCache.Remove(cacheKey);
+        }
+    }
+
     /// <summary>
     /// Execute a HTTP or REST request.
     /// [Documentation](https://tasks.frends.com/tasks#frends-tasks/Frends.HTTP.Request)
@@ -57,9 +67,6 @@ public class HTTP
                     cancellationToken)
                 .ConfigureAwait(false))
             {
-
-                cancellationToken.ThrowIfCancellationRequested();
-
                 dynamic response;
 
                 switch (input.ResultMethod) {
@@ -184,7 +191,7 @@ public class HTTP
         cancellationToken.ThrowIfCancellationRequested();
 
         // Only POST, PUT, PATCH and DELETE can have content, otherwise the HttpClient will fail
-        var isContentAllowed = Definitions.Method.TryParse(method, ignoreCase: true, result: out SendMethod _);
+        var isContentAllowed = Enum.TryParse(method, ignoreCase: true, result: out SendMethod _);
 
         using (var request = new HttpRequestMessage(new HttpMethod(method), new Uri(url))
         {
@@ -236,165 +243,4 @@ public class HTTP
             return response;
         }
     }
-
-    #region Test methods
-    // For tests
-    internal static readonly ObjectCache ClientCache = MemoryCache.Default;
-
-    private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
-
-    internal static void ClearClientCache()
-    {
-        var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
-        foreach (var cacheKey in cacheKeys)
-        {
-            ClientCache.Remove(cacheKey);
-        }
-    }
-
-    internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
-    #endregion
-}
-
-#region Helper methods
-internal class HttpClientFactory : IHttpClientFactory
-{
-    public HttpClient CreateClient(Options options)
-    {
-        var handler = new HttpClientHandler();
-        handler.SetHandlerSettingsBasedOnOptions(options);
-        return new HttpClient(handler);
-    }
-}
-
-internal static class Extensions
-{
-    internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
-    {
-        switch (options.Authentication)
-        {
-            case Authentication.WindowsIntegratedSecurity:
-                handler.UseDefaultCredentials = true;
-                break;
-            case Authentication.WindowsAuthentication:
-                var domainAndUserName = options.Username.Split('\\');
-                if (domainAndUserName.Length != 2)
-                {
-                    throw new ArgumentException(
-                        $@"Username needs to be 'domain\username' now it was '{options.Username}'");
-                }
-
-                handler.Credentials =
-                    new NetworkCredential(domainAndUserName[1], options.Password, domainAndUserName[0]);
-                break;
-            case Authentication.ClientCertificate:
-                handler.ClientCertificates.AddRange(GetCertificates(options));
-                break;
-        }
-
-        handler.AllowAutoRedirect = options.FollowRedirects;
-        handler.UseCookies = options.AutomaticCookieHandling;
-
-        if (options.AllowInvalidCertificate)
-        {
-            handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
-        }
-    }
-
-    internal static void SetDefaultRequestHeadersBasedOnOptions(this HttpClient httpClient, Options options)
-    {
-        //Do not automatically set expect 100-continue response header
-        httpClient.DefaultRequestHeaders.ExpectContinue = false;
-        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("content-type", "application/json");
-        httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
-    }
-
-    private static X509Certificate[] GetCertificates(Options options)
-    {
-        X509Certificate2[] certificates;
-
-        switch (options.ClientCertificateSource)
-        {
-            case CertificateSource.CertificateStore:
-                var thumbprint = options.CertificateThumbprint;
-                certificates = GetCertificatesFromStore(thumbprint, options.LoadEntireChainForCertificate);
-                break;
-            case CertificateSource.File:
-                certificates = GetCertificatesFromFile(options.ClientCertificateFilePath, options.ClientCertificateKeyPhrase);
-                break;
-            case CertificateSource.String:
-                certificates = GetCertificatesFromString(options.ClientCertificateInBase64, options.ClientCertificateKeyPhrase);
-                break;
-            default:
-                throw new Exception("Unsupported Certificate source");
-        }
-
-        return certificates.Cast<X509Certificate>().ToArray();
-    }
-
-    private static X509Certificate2[] GetCertificatesFromString(string certificateContentsBase64, string keyPhrase)
-    {
-        var certificateBytes = Convert.FromBase64String(certificateContentsBase64);
-
-        return LoadCertificatesFromBytes(certificateBytes, keyPhrase);
-    }
-
-    private static X509Certificate2[] LoadCertificatesFromBytes(byte[] certificateBytes, string keyPhrase)
-    {
-        var collection = new X509Certificate2Collection();
-
-        if (!string.IsNullOrEmpty(keyPhrase))
-        {
-            collection.Import(certificateBytes, keyPhrase, X509KeyStorageFlags.PersistKeySet);
-        }
-        else
-        {
-            collection.Import(certificateBytes, null, X509KeyStorageFlags.PersistKeySet);
-        }
-        return collection.Cast<X509Certificate2>().OrderByDescending(c => c.HasPrivateKey).ToArray();
-
-    }
-
-    private static X509Certificate2[] GetCertificatesFromFile(string clientCertificateFilePath, string keyPhrase)
-    {
-        return LoadCertificatesFromBytes(File.ReadAllBytes(clientCertificateFilePath), keyPhrase);
-    }
-
-    private static X509Certificate2[] GetCertificatesFromStore(string thumbprint,
-        bool loadEntireChain)
-    {
-        thumbprint = Regex.Replace(thumbprint, @"[^\da-zA-z]", string.Empty).ToUpper();
-        using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
-        {
-            store.Open(OpenFlags.ReadOnly);
-            var signingCert = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-            if (signingCert.Count == 0)
-            {
-                throw new FileNotFoundException(
-                    $"Certificate with thumbprint: '{thumbprint}' not found in current user cert store.");
-            }
-
-            var certificate = signingCert[0];
-
-
-            if (!loadEntireChain)
-            {
-                return new[] { certificate };
-            }
-
-            var chain = new X509Chain();
-            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-            chain.Build(certificate);
-
-            // include the whole chain
-            var certificates = chain
-                .ChainElements.Cast<X509ChainElement>()
-                .Select(c => c.Certificate)
-                .OrderByDescending(c => c.HasPrivateKey)
-                .ToArray();
-
-            return certificates;
-        }
-    }
-    #endregion
 }
