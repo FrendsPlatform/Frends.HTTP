@@ -1,0 +1,17 @@
+name: RequestBytes_build_main
+
+on:
+  push:
+    branches:    
+      - master
+    paths:
+      - 'Frends.HTTP.RequestBytes/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/linux_build_main.yml@main
+    with:
+      workdir: Frends.HTTP.RequestBytes
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
