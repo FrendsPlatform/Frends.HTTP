@@ -9,12 +9,8 @@ using Assert = NUnit.Framework.Assert;
 using Frends.HTTP.RequestBytes.Definitions;
 using System.Collections.Generic;
 using System.Text;
-using Google.Protobuf.WellKnownTypes;
-using System.Xml.Linq;
 using Method = Frends.HTTP.RequestBytes.Definitions.Method;
 using System.Net;
-using System.Collections;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 
 namespace Frends.HTTP.RequestBytes.Tests;
 

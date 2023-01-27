@@ -6,7 +6,7 @@ Frends Task for Executing a HTTP Request Bytes.
 ![MyGet](https://img.shields.io/myget/frends-tasks/v/Frends.HTTP.RequestBytes)
 ![Coverage](https://app-github-custom-badges.azurewebsites.net/Badge?key=FrendsPlatform/Frends.HTTP/Frends.HTTP.RequestBytes|main)
 
-Returns the object of body, headers and statuscode.
+Returns the object of body, body size in megabytes, content-type of headers, headers and statuscode.
 
 ## Installing
 
