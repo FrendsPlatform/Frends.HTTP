@@ -28,7 +28,7 @@ public class Input
     /// </summary>
     /// <example>{ "Body": "Message" }</example>
     [UIHint(nameof(Method), "", Method.POST, Method.DELETE, Method.PATCH, Method.PUT)]
-    public dynamic Message { get; set; }
+    public string Message { get; set; }
 
     /// <summary>
     /// List of HTTP headers to be added to the request.
