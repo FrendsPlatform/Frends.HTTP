@@ -1,4 +1,4 @@
-# Frends.HTTP.Request
+# Frends.HTTP.RequestBytes
 Frends Task for Executing a HTTP Request Bytes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) 
@@ -20,6 +20,8 @@ Rebuild the project
 `dotnet build`
 
 Run tests
+
+`dotnet test`
 
 Create a NuGet package
 
