@@ -3,7 +3,7 @@ name: Request_push
 on:
   push:
     branches-ignore:
-      - master
+      - main
     paths:
       - 'Frends.HTTP.Request/**'
   workflow_dispatch:

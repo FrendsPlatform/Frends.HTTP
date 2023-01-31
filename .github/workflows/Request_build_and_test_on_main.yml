@@ -3,7 +3,7 @@ name: Request_build_main
 on:
   push:
     branches:    
-      - master
+      - main
     paths:
       - 'Frends.HTTP.Request/**'
   workflow_dispatch:
