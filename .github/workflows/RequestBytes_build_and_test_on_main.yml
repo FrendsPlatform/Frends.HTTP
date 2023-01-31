@@ -3,7 +3,7 @@ name: RequestBytes_build_main
 on:
   push:
     branches:    
-      - master
+      - main
     paths:
       - 'Frends.HTTP.RequestBytes/**'
   workflow_dispatch:

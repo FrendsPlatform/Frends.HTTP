@@ -3,7 +3,7 @@ name: RequestBytes_push
 on:
   push:
     branches-ignore:
-      - master
+      - main
     paths:
       - 'Frends.HTTP.RequestBytes/**'
   workflow_dispatch:
