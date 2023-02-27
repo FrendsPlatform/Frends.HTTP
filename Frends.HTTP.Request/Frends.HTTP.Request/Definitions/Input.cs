@@ -30,6 +30,8 @@ public class Input
     [DisplayFormat(DataFormatString = "Text")]
     public string Url { get; set; }
 
+    public string FilePath { get; set; }
+
     /// <summary>
     /// The message text to be sent with the request.
     /// </summary>
