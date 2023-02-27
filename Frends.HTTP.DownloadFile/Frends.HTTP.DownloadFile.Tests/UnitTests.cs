@@ -29,7 +29,7 @@ public class UnitTests
     }
 
     [TestMethod]
-    public async Task TestFileDownload_WithoutHeaders()
+    public async Task TestFileDownload_WithoutHeaders_AllTrue()
     {
         var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
 
@@ -52,6 +52,56 @@ public class UnitTests
                     AllowInvalidResponseContentTypeCharSet = true,
                     Authentication = auth,
                     AutomaticCookieHandling = true,
+                    CertificateThumbprint = "",
+                    ClientCertificateFilePath = "",
+                    ClientCertificateInBase64 = "",
+                    ClientCertificateKeyPhrase = "",
+                    ClientCertificateSource = cert,
+                    ConnectionTimeoutSeconds = 60,
+                    FollowRedirects = true,
+                    LoadEntireChainForCertificate = true,
+                    Password = "",
+                    ThrowExceptionOnErrorResponse = true,
+                    Token = "",
+                    Username = "domain\\username"
+                };
+
+                var result = await HTTP.DownloadFile(input, options, default);
+
+                Assert.IsTrue(result != null);
+                Assert.IsNotNull(result.FilePath);
+                Assert.IsTrue(File.Exists(result.FilePath));
+
+                Cleanup();
+                Directory.CreateDirectory(_directory);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task TestFileDownload_WithoutHeaders_AllFalse()
+    {
+        var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
+
+        var certSource = new List<CertificateSource>() { CertificateSource.CertificateStore, CertificateSource.File, CertificateSource.String };
+
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        foreach (var auth in auths)
+        {
+            foreach (var cert in certSource)
+            {
+                var options = new Options
+                {
+                    AllowInvalidCertificate = false,
+                    AllowInvalidResponseContentTypeCharSet = false,
+                    Authentication = auth,
+                    AutomaticCookieHandling = false,
                     CertificateThumbprint = "",
                     ClientCertificateFilePath = "",
                     ClientCertificateInBase64 = "",
