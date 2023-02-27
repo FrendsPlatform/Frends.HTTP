@@ -29,7 +29,7 @@ public class UnitTests
     }
 
     [TestMethod]
-    public async Task TestFileDownload()
+    public async Task TestFileDownload_WithoutHeaders()
     {
         var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
 
@@ -56,7 +56,59 @@ public class UnitTests
                     ClientCertificateFilePath = "",
                     ClientCertificateInBase64 = "",
                     ClientCertificateKeyPhrase = "",
-                    ClientCertificateSource = CertificateSource.String,
+                    ClientCertificateSource = cert,
+                    ConnectionTimeoutSeconds = 60,
+                    FollowRedirects = false,
+                    LoadEntireChainForCertificate = false,
+                    Password = "",
+                    ThrowExceptionOnErrorResponse = false,
+                    Token = "",
+                    Username = "domain\\username"
+                };
+
+                var result = await HTTP.DownloadFile(input, options, default);
+
+                Assert.IsTrue(result != null);
+                Assert.IsNotNull(result.FilePath);
+                Assert.IsTrue(File.Exists(result.FilePath));
+
+                Cleanup();
+                Directory.CreateDirectory(_directory);
+            }
+        }
+    }
+
+    [TestMethod]
+    public async Task TestFileDownload_WithHeaders()
+    {
+        var headers = new[] { new Header() { Name = "foo", Value = "bar" } };
+
+        var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
+
+        var certSource = new List<CertificateSource>() { CertificateSource.CertificateStore, CertificateSource.File, CertificateSource.String };
+
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = headers
+        };
+
+        foreach (var auth in auths)
+        {
+            foreach (var cert in certSource)
+            {
+                var options = new Options
+                {
+                    AllowInvalidCertificate = true,
+                    AllowInvalidResponseContentTypeCharSet = true,
+                    Authentication = auth,
+                    AutomaticCookieHandling = true,
+                    CertificateThumbprint = "",
+                    ClientCertificateFilePath = "",
+                    ClientCertificateInBase64 = "",
+                    ClientCertificateKeyPhrase = "",
+                    ClientCertificateSource = cert,
                     ConnectionTimeoutSeconds = 60,
                     FollowRedirects = false,
                     LoadEntireChainForCertificate = false,
