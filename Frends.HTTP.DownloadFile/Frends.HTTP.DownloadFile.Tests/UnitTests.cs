@@ -241,6 +241,6 @@ public class UnitTests
             });
 
         byte[] certData = cert.Export(X509ContentType.Pfx, password);
-        File.WriteAllBytes(path, certData); 
+        File.WriteAllBytes(path, certData);
     }
 }
