@@ -62,7 +62,7 @@ public static class HTTP
             //Clear default headers
             httpClient.DefaultRequestHeaders.Clear();
 
-            if (headers != null)
+            if (headers != null && headers.Count > 0)
             {
                 foreach (var header in headers)
                 {

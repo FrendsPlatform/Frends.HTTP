@@ -20,7 +20,7 @@ public class Input
     /// <summary>
     /// List of HTTP headers to be added to the request.
     /// </summary>
-    /// <example>[ foo, bar ]</example>
+    /// <example>[ { Name = "Content-Type", Value = "application/json" }, { Name = "Accept", Value = "application/json"  } ]</example>
     public Header[] Headers { get; set; }
 
     /// <summary>

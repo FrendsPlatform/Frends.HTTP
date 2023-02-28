@@ -47,8 +47,6 @@ internal static class Extensions
         httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
     }
 
-    // Have to skip these because there's no certificate to use for unit testing.
-    [ExcludeFromCodeCoverage]
     private static X509Certificate[] GetCertificates(Options options)
     {
         X509Certificate2[] certificates;
@@ -72,8 +70,6 @@ internal static class Extensions
         return certificates.Cast<X509Certificate>().ToArray();
     }
 
-    // Have to skip these because there's no certificate to use for unit testing.
-    [ExcludeFromCodeCoverage]
     private static X509Certificate2[] GetCertificatesFromString(string certificateContentsBase64, string keyPhrase)
     {
         var certificateBytes = Convert.FromBase64String(certificateContentsBase64);
@@ -95,8 +91,6 @@ internal static class Extensions
 
     }
 
-    // Have to skip these because there's no certificate to use for unit testing.
-    [ExcludeFromCodeCoverage]
     private static X509Certificate2[] GetCertificatesFromFile(string clientCertificateFilePath, string keyPhrase)
     {
         return LoadCertificatesFromBytes(File.ReadAllBytes(clientCertificateFilePath), keyPhrase);
