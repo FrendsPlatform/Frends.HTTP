@@ -227,22 +227,20 @@ public class UnitTests
 
     private static void GenerateSignatureFile(string path, string password)
     {
-        using (CryptContext ctx = new())
-        {
-            ctx.Open();
+        using CryptContext ctx = new();
+        ctx.Open();
 
-            X509Certificate2 cert = ctx.CreateSelfSignedCertificate(
-                new SelfSignedCertProperties
-                {
-                    IsPrivateKeyExportable = true,
-                    KeyBitLength = 4096,
-                    Name = new X500DistinguishedName("cn=localhost"),
-                    ValidFrom = DateTime.Today.AddDays(-1),
-                    ValidTo = DateTime.Today.AddYears(1),
-                });
+        X509Certificate2 cert = ctx.CreateSelfSignedCertificate(
+            new SelfSignedCertProperties
+            {
+                IsPrivateKeyExportable = true,
+                KeyBitLength = 4096,
+                Name = new X500DistinguishedName("cn=localhost"),
+                ValidFrom = DateTime.Today.AddDays(-1),
+                ValidTo = DateTime.Today.AddYears(1),
+            });
 
-            byte[] certData = cert.Export(X509ContentType.Pfx, password);
-            File.WriteAllBytes(path, certData);
-        }
+        byte[] certData = cert.Export(X509ContentType.Pfx, password);
+        File.WriteAllBytes(path, certData); 
     }
 }
