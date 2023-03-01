@@ -188,6 +188,8 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_Certification()
     {
+        var certSources = new List<CertificateSource>() { CertificateSource.File, CertificateSource.String, CertificateSource.CertificateStore };
+
         var input = new Input
         {
             Url = _targetFileAddress,
@@ -195,52 +197,91 @@ public class UnitTests
             Headers = null
         };
 
-        GenerateSignatureFile(_certificatePath, _privateKeyPassword);
-
-        var options = new Options
+        foreach (var cert in certSources)
         {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.ClientCertificate,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = _certificatePath,
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = _privateKeyPassword,
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = true,
-            Password = "",
-            ThrowExceptionOnErrorResponse = true,
-            Token = "",
-            Username = "domain\\username"
-        };
+            var tp = CertificateHandler(_certificatePath, _privateKeyPassword, false, null);
 
-        var result = await HTTP.DownloadFile(input, options, default);
+            var options = new Options
+            {
+                AllowInvalidCertificate = true,
+                AllowInvalidResponseContentTypeCharSet = true,
+                Authentication = Authentication.ClientCertificate,
+                AutomaticCookieHandling = true,
+                CertificateThumbprint = tp,
+                ClientCertificateFilePath = _certificatePath,
+                ClientCertificateInBase64 = cert is CertificateSource.String ? Convert.ToBase64String(File.ReadAllBytes(_certificatePath)) : "",
+                ClientCertificateKeyPhrase = _privateKeyPassword,
+                ClientCertificateSource = cert,
+                ConnectionTimeoutSeconds = 60,
+                FollowRedirects = true,
+                LoadEntireChainForCertificate = true,
+                Password = "",
+                ThrowExceptionOnErrorResponse = true,
+                Token = "",
+                Username = "domain\\username"
+            };
 
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-        Assert.IsNotNull(result.FilePath);
-        Assert.IsTrue(File.Exists(result.FilePath));
+            var result = await HTTP.DownloadFile(input, options, default);
+
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Success);
+            Assert.IsNotNull(result.FilePath);
+            Assert.IsTrue(File.Exists(result.FilePath));
+
+            Cleanup();
+            Directory.CreateDirectory(_directory);
+            CertificateHandler(_certificatePath, _privateKeyPassword, true, tp);
+        }
+
     }
 
-    private static void GenerateSignatureFile(string path, string password)
+    private static string CertificateHandler(string path, string password, bool cleanUp, string thumbPrint)
     {
-        using CryptContext ctx = new();
-        ctx.Open();
-
-        X509Certificate2 cert = ctx.CreateSelfSignedCertificate(
-            new SelfSignedCertProperties
+        try
+        {
+            if (!cleanUp)
             {
-                IsPrivateKeyExportable = true,
-                KeyBitLength = 4096,
-                Name = new X500DistinguishedName("cn=localhost"),
-                ValidFrom = DateTime.Today.AddDays(-1),
-                ValidTo = DateTime.Today.AddYears(1),
-            });
+                using CryptContext ctx = new();
+                ctx.Open();
 
-        byte[] certData = cert.Export(X509ContentType.Pfx, password);
-        File.WriteAllBytes(path, certData);
+                X509Certificate2 cert = ctx.CreateSelfSignedCertificate(
+                    new SelfSignedCertProperties
+                    {
+                        IsPrivateKeyExportable = true,
+                        KeyBitLength = 4096,
+                        Name = new X500DistinguishedName("cn=localhost"),
+                        ValidFrom = DateTime.Today.AddDays(-1),
+                        ValidTo = DateTime.Today.AddMinutes(1),
+                    });
+
+                byte[] certData = cert.Export(X509ContentType.Pfx, password);
+
+                using (X509Store store = new(StoreName.My, StoreLocation.CurrentUser))
+                {
+                    store.Open(OpenFlags.ReadWrite);
+                    store.Add(cert);
+                }
+
+                File.WriteAllBytes(path, certData);
+                return cert.Thumbprint;
+            }
+            else
+            {
+                using (X509Store store = new(StoreName.My, StoreLocation.CurrentUser))
+                {
+                    store.Open(OpenFlags.ReadWrite | OpenFlags.IncludeArchived);
+                    X509Certificate2Collection col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
+
+                    foreach (var cert in col)
+                        store.Remove(cert);
+                }
+
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
     }
 }

@@ -76,8 +76,6 @@ internal static class Extensions
         return LoadCertificatesFromBytes(certificateBytes, keyPhrase);
     }
 
-    // Have to skip these because there's no certificate to use for unit testing.
-    [ExcludeFromCodeCoverage]
     private static X509Certificate2[] LoadCertificatesFromBytes(byte[] certificateBytes, string keyPhrase)
     {
         var collection = new X509Certificate2Collection();
@@ -96,8 +94,6 @@ internal static class Extensions
         return LoadCertificatesFromBytes(File.ReadAllBytes(clientCertificateFilePath), keyPhrase);
     }
 
-    // Have to skip these because there's no certificate to use for unit testing.
-    [ExcludeFromCodeCoverage]
     private static X509Certificate2[] GetCertificatesFromStore(string thumbprint,
         bool loadEntireChain)
     {
