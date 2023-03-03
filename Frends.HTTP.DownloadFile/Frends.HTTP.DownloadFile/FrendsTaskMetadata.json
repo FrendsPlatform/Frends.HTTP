@@ -1,0 +1,7 @@
+{
+  "Tasks": [
+    {
+      "TaskMethod": "Frends.HTTP.DownloadFile.HTTP.DownloadFile"
+    }
+  ]
+}
