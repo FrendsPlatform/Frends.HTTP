@@ -1,6 +1,5 @@
 ﻿using Frends.HTTP.DownloadFile.Definitions;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
