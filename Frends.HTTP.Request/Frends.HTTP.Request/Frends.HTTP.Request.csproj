@@ -25,6 +25,7 @@
 	<PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+	<PackageReference Include="System.DirectoryServices" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

@@ -185,7 +185,7 @@ public class UnitTests
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("FooBar"));
     }
-    
+
     [TestMethod]
     public async Task AuthorizationHeaderShouldOverrideOption()
     {
@@ -263,7 +263,7 @@ public class UnitTests
         var resultBody = result.Body as JToken;
         Assert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
     }
-    
+
     [TestMethod]
     public async Task RestRequestShouldNotThrowIfReturnIsEmpty()
     {
@@ -279,7 +279,7 @@ public class UnitTests
 
         Assert.AreEqual(new JValue(""), result.Body);
     }
-    
+
     [TestMethod]
     public void RestRequestShouldThrowIfReturnIsNotValidJson()
     {
@@ -295,7 +295,7 @@ public class UnitTests
 
         Assert.AreEqual("Unable to read response message as json: <fail>failbar<fail>", ex.Message);
     }
-    
+
     [TestMethod]
     public async Task HttpRequestBodyReturnShouldBeOfTypeString()
     {
@@ -311,7 +311,7 @@ public class UnitTests
 
         Assert.AreEqual(expectedReturn, result.Body);
     }
-    
+
     [TestMethod]
     public async Task PatchShouldComeThrough()
     {
@@ -335,7 +335,7 @@ public class UnitTests
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("foo åäö"));
     }
-    
+
     [TestMethod]
     public async Task RequestShouldSetEncodingWithContentTypeCharsetIgnoringCase()
     {
@@ -361,20 +361,5 @@ public class UnitTests
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("foo åäö"));
-    }
-}
-
-public class MockHttpClientFactory : IHttpClientFactory
-{
-    private readonly MockHttpMessageHandler _mockHttpMessageHandler;
-
-    public MockHttpClientFactory(MockHttpMessageHandler mockHttpMessageHandler)
-    {
-        _mockHttpMessageHandler = mockHttpMessageHandler;
-    }
-    public HttpClient CreateClient(Options options)
-    {
-        return _mockHttpMessageHandler.ToHttpClient();
-
     }
 }

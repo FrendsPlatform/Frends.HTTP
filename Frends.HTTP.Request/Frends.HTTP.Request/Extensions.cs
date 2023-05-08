@@ -6,9 +6,11 @@ using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using Frends.HTTP.Request.Definitions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Frends.HTTP.Request;
 
+[ExcludeFromCodeCoverage]
 internal static class Extensions
 {
     internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
