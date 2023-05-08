@@ -19,8 +19,8 @@ public class Input
     /// The HTTP result method to be used with the request.
     /// </summary>
     /// <example>REST</example>
-    [DefaultValue(ResultMethod.HTTP)]
-    public ResultMethod ResultMethod { get; set; }
+    [DefaultValue(ReturnFormat.String)]
+    public ReturnFormat ResultMethod { get; set; }
 
     /// <summary>
     /// The URL with protocol and path. You can include query parameters directly in the url.

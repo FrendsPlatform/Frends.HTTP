@@ -111,7 +111,7 @@ public class Options
     public bool AllowInvalidResponseContentTypeCharSet { get; set; }
 
     /// <summary>
-    /// Throw exception if return code of request is not successfull
+    /// Throw exception if return code of request is not successfull.
     /// </summary>
     /// <example>true</example>
     public bool ThrowExceptionOnErrorResponse { get; set; }
