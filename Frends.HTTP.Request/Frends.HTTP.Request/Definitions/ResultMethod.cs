@@ -4,14 +4,14 @@
 /// Type of HTTP Request result
 /// </summary>
 /// <example>GET</example>
-public enum ResultMethod
+public enum ReturnFormat
 {
     /// <summary>
     /// HTTP result as a string.
     /// </summary>
-    HTTP,
+    String,
     /// <summary>
-    /// REST result as an object.
+    /// REST result as an JToken.
     /// </summary>
-    REST
+    JToken
 }

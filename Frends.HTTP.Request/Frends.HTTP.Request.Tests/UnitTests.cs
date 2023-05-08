@@ -223,7 +223,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
             Message = "",
-            ResultMethod = ResultMethod.REST
+            ResultMethod = ReturnFormat.JToken
         };
         var options = new Options
         {
@@ -252,7 +252,7 @@ public class UnitTests
 
 
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
@@ -268,7 +268,7 @@ public class UnitTests
     public async Task RestRequestShouldNotThrowIfReturnIsEmpty()
     {
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
@@ -284,7 +284,7 @@ public class UnitTests
     public void RestRequestShouldThrowIfReturnIsNotValidJson()
     {
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
@@ -302,7 +302,7 @@ public class UnitTests
         const string expectedReturn = "<foo>BAR</foo>";
 
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.HTTP };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.String };
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         _mockHttpMessageHandler.When(input.Url)
@@ -323,7 +323,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[] { },
             Message = message,
-            ResultMethod = ResultMethod.HTTP
+            ResultMethod = ReturnFormat.String
         };
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
@@ -350,7 +350,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[1] { contentType },
             Message = requestMessage,
-            ResultMethod = ResultMethod.HTTP
+            ResultMethod = ReturnFormat.String
         };
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 

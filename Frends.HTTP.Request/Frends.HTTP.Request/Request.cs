@@ -38,7 +38,7 @@ public class HTTP
 
     /// <summary>
     /// Execute a HTTP or REST request.
-    /// [Documentation](https://tasks.frends.com/tasks#frends-tasks/Frends.HTTP.Request)
+    /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends.HTTP.Request)
     /// </summary>
     /// <param name="input"></param>
     /// <param name="options"></param>
@@ -70,13 +70,13 @@ public class HTTP
                 dynamic response;
 
                 switch (input.ResultMethod) {
-                    case ResultMethod.HTTP:
+                    case ReturnFormat.String:
                         var hbody = responseMessage.Content != null ? await responseMessage.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false) : null;
                         var hstatusCode = (int)responseMessage.StatusCode;
                         var hheaders = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content?.Headers);
                         response = new Result(hbody, hheaders, hstatusCode);
                         break;
-                    case ResultMethod.REST:
+                    case ReturnFormat.JToken:
                         var rbody = TryParseRequestStringResultAsJToken(await responseMessage.Content.ReadAsStringAsync()
                         .ConfigureAwait(false));
                         var rstatusCode = (int)responseMessage.StatusCode;
