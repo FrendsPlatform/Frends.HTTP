@@ -41,7 +41,7 @@ public class HTTP
     /// <param name="input"></param>
     /// <param name="options"></param>
     /// <param name="cancellationToken"/>
-    /// <returns>Object { dynamic Body, Dictionary(string, string) Headers, int StatusCode }</returns>
+    /// <returns>Object { string Body, Dictionary(string, string) Headers, int StatusCode }</returns>
     public static async Task<object> SendBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http.Headers;
+﻿using System.Collections.Generic;
 
 namespace Frends.HTTP.SendBytes.Definitions;
 
