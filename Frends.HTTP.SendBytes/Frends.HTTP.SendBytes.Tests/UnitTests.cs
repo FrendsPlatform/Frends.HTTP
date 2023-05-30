@@ -93,7 +93,7 @@ public class UnitTests
         _mockHttpMessageHandler.When(input.Url)
             .Respond("application/octet-stream", String.Empty);
 
-        var result = (dynamic) await HTTP.SendBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.SendBytes(input, options, CancellationToken.None);
         Assert.IsEmpty(result.Body);
     }
 
@@ -207,7 +207,7 @@ public class UnitTests
 
         _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
             .Respond("application/octet-stream", "FooBar");
-        var result = (dynamic) await HTTP.SendBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.SendBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.AreEqual("FooBar", result.Body);
@@ -218,7 +218,7 @@ public class UnitTests
     {
         var input = new Input
         {
-            Method = Method.POST,
+            Method = Method.PUT,
             Url = "http://localhost:9191/endpoint",
             Headers = new[] { new Header() { Name = "Authorization", Value = "Basic fooToken" } },
             ContentBytes = new byte[0]
@@ -232,7 +232,7 @@ public class UnitTests
 
         _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
             .Respond("application/octet-stream", "FooBar");
-        var result = (dynamic) await HTTP.SendBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.SendBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.AreEqual("FooBar", result.Body);
@@ -245,7 +245,7 @@ public class UnitTests
         var bytes = Encoding.UTF8.GetBytes(expectedString);
         var input = new Input
         {
-            Method = Method.POST,
+            Method = Method.PATCH,
             Url = "http://localhost:9191/data",
             Headers = new[]
             {
@@ -258,12 +258,13 @@ public class UnitTests
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
-        _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("Content-Type", "text/plain; charset=utf-8").WithContent(expectedString)
+        _mockHttpMessageHandler.Expect(HttpMethod.Patch, input.Url).WithHeaders("Content-Type", "text/plain; charset=utf-8").WithContent(expectedString)
             .Respond("text/plain", "foo åäö");
 
         var result = (Result)await HTTP.SendBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        Assert.AreEqual("foo åäö", result.Body);
     }
 }
 

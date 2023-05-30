@@ -5,10 +5,12 @@ using System.Net.Http;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
+using System.Diagnostics.CodeAnalysis;
 using Frends.HTTP.SendBytes.Definitions;
 
 namespace Frends.HTTP.SendBytes;
 
+[ExcludeFromCodeCoverage]
 internal static class Extensions
 {
     internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
