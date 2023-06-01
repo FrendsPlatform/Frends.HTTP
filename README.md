@@ -7,6 +7,7 @@ Frends tasks for HTTP operations.
 - [Frends.HTTP.Request](Frends.HTTP.Request/README.md)
 - [Frends.HTTP.RequestBytes](Frends.HTTP.RequestBytes/README.md)
 - [Frends.HTTP.SendBytes](Frends.HTTP.SendBytes/README.md)
+- [Frends.HTTP.SendAndReceiveBytes](Frends.HTTP.SendAndReceiveBytes/README.md)
 - [Frends.HTTP.DownloadFile](Frends.HTTP.DownloadFile/README.md)
 
 # Contributing
