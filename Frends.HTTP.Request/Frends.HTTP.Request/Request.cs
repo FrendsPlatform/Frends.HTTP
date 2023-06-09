@@ -78,7 +78,7 @@ public class HTTP
                 response = new Result(hbody, hheaders, hstatusCode);
                 break;
             case ReturnFormat.JToken:
-                var rbody = TryParseRequestStringResultAsJToken(await responseMessage.Content.ReadAsStringAsync()
+                var rbody = TryParseRequestStringResultAsJToken(await responseMessage.Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false));
                 var rstatusCode = (int)responseMessage.StatusCode;
                 var rheaders = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
