@@ -3,8 +3,8 @@ Frends Task for Executing a HTTP UploadFile.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT) 
 [![Build](https://github.com/FrendsPlatform/Frends.HTTP/actions/workflows/Request_build_and_test_on_main.yml/badge.svg)](https://github.com/FrendsPlatform/Frends.HTTP/actions)
-![MyGet](https://img.shields.io/myget/frends-tasks/v/Frends.HTTP.Request)
-![Coverage](https://app-github-custom-badges.azurewebsites.net/Badge?key=FrendsPlatform/Frends.HTTP/Frends.HTTP.Request|main)
+![MyGet](https://img.shields.io/myget/frends-tasks/v/Frends.HTTP/Frends.HTTP.UploadFile)
+![Coverage](https://app-github-custom-badges.azurewebsites.net/Badge?key=FrendsPlatform/Frends.HTTP/Frends.HTTP.UploadFile|main)
 
 Returns the object of body, headers and statuscode.
 
