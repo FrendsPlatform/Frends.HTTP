@@ -10,8 +10,7 @@ on:
 
 jobs:
   build:
-    uses: FrendsPlatform/FrendsTasks/.github/workflows/linux_build_test.yml@main
-    with:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/linux_build_test.yml@issue-62
       workdir: Frends.HTTP.Request
     secrets:
       badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
