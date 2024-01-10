@@ -20,7 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Frends.HTTP.Request;
 
 /// <summary>
-/// Task class.            
+/// Task class.             
 /// </summary>
 public class HTTP
 {
