@@ -131,6 +131,8 @@ public class UnitTests
     public async Task RequestShouldAddBasicAuthHeaders()
     {
         const string expectedReturn = @"'FooBar'";
+        const string testUsername = "Foo";
+        const string testPassword = "Bar";
 
         var input = new Input
         {
@@ -145,8 +147,8 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
-            Username = "Foo",
-            Password = "Bar"
+            Username = testUsername,
+            Password = testPassword
         };
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
