@@ -260,8 +260,8 @@ public class UnitTests
             .Respond("application/json", output);
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
-        var resultBody = result.Body as JToken;
-        Assert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
+        if (result.Body is JToken resultBody)
+            Assert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
     }
 
     [TestMethod]
