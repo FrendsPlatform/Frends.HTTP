@@ -131,8 +131,8 @@ public class UnitTests
     [TestMethod]
     public async Task RequestShouldAddBasicAuthHeaders()
     {
-        string user = RandomString(3);
-        string pass = RandomString(3);
+        string user = Guid.NewGuid().ToString("n").Substring(0, 8);
+        string pass = Guid.NewGuid().ToString("n").Substring(0, 8);
         string expectedReturn = $"'{user}{pass}'";
 
         var input = new Input
@@ -365,13 +365,5 @@ public class UnitTests
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("foo åäö"));
-    }
-
-    private static string RandomString(int length)
-    {
-        Random random = new Random();
-        string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, length)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }
