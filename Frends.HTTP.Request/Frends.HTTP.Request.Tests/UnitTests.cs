@@ -139,6 +139,7 @@ public class UnitTests
             Headers = new Header[0],
             Message = ""
         };
+
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
