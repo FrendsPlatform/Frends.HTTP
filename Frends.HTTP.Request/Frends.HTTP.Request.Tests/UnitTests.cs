@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -130,9 +131,10 @@ public class UnitTests
     [TestMethod]
     public async Task RequestShouldAddBasicAuthHeaders()
     {
-        const string expectedReturn = @"'FooBar'";
-        const string testUsername = "Foo";
-        const string testPassword = "Bar";
+        string user = RandomString(3);
+        string pass = RandomString(3);
+        string expectedReturn = $"'{user}{pass}'";
+        
 
         var input = new Input
         {
@@ -147,8 +149,8 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
-            Username = testUsername,
-            Password = testPassword
+            Username = user,
+            Password = pass
         };
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
@@ -159,7 +161,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.IsTrue(result.Body.Contains("FooBar"));
+        Assert.IsTrue(result.Body.Contains(expectedReturn));
     }
 
     [TestMethod]
@@ -364,5 +366,13 @@ public class UnitTests
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("foo åäö"));
+    }
+
+    private static string RandomString(int length)
+    {
+        Random random = new Random();
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }
