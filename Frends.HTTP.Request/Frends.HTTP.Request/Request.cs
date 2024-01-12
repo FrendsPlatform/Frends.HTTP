@@ -212,7 +212,7 @@ public class HTTP
                     var contentHeaderAddedSuccessfully = content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                     if (!contentHeaderAddedSuccessfully)
                     {
-                        Trace.TraceWarning($"Could not add header {header.Key}:{header.Value}");
+                        Trace.TraceWarning($"Could not add header {header.Key.ToString()}:{header.Value}");
                     }
                 }
             }
