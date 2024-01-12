@@ -138,8 +138,9 @@ public class HTTP
             contentTypeIsSetAndValid = MediaTypeWithQualityHeaderValue.TryParse(contentTypeValue, out validContentType);
         }
 
+        var encodingStr = validContentType.CharSet == null ? Encoding.UTF8.WebName : validContentType.CharSet;
         return contentTypeIsSetAndValid
-            ? new StringContent(input.Message ?? "", Encoding.GetEncoding(validContentType.CharSet ?? Encoding.UTF8.WebName))
+            ? new StringContent(input.Message ?? "", Encoding.GetEncoding(encodingStr))
             : new StringContent(input.Message ?? "");
     }
 
