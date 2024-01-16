@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.DirectoryServices;
 using System.Runtime.InteropServices;
 
@@ -31,7 +29,7 @@ internal class Helper
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             throw new PlatformNotSupportedException("UseGivenCredentials feature is only supported on Windows.");
 
-        DirectoryEntry localDirectory = new DirectoryEntry("WinNT://" + Environment.MachineName.ToString());
+        DirectoryEntry localDirectory = new DirectoryEntry($"WinNT://{Environment.MachineName}");
         DirectoryEntries users = localDirectory.Children;
         DirectoryEntry user = users.Find(name);
         users.Remove(user);
