@@ -147,7 +147,8 @@ public class UnitTests
             Authentication = Authentication.Basic,
             Username = Guid.NewGuid().ToString(),
             Password = Guid.NewGuid().ToString()
-    };
+        };
+
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
 

@@ -139,8 +139,8 @@ public class HTTP
         }
 
         return contentTypeIsSetAndValid
-            ? new StringContent(input.Message ?? "", Encoding.GetEncoding(validContentType.CharSet ?? Encoding.UTF8.WebName))
-            : new StringContent(input.Message ?? "");
+            ? new StringContent(input.Message ?? string.Empty, Encoding.GetEncoding(validContentType.CharSet ?? Encoding.UTF8.WebName))
+            : new StringContent(input.Message ?? string.Empty);
     }
 
     private static object TryParseRequestStringResultAsJToken(string response)
