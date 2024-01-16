@@ -38,7 +38,7 @@ public class HTTP
     }
 
     /// <summary>
-    /// Execute a HTTP or REST request.
+    /// Frends Task for executing HTTP requests with String or JSON payload.
     /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends.HTTP.Request)
     /// </summary>
     /// <param name="input"></param>
@@ -130,17 +130,14 @@ public class HTTP
 
     private static HttpContent GetContent(Input input, IDictionary<string, string> headers)
     {
-        //Check if Content-Type exists and is set and valid
-        var contentTypeIsSetAndValid = false;
-        MediaTypeWithQualityHeaderValue validContentType = null;
         if (headers.TryGetValue("content-type", out string contentTypeValue))
         {
-            contentTypeIsSetAndValid = MediaTypeWithQualityHeaderValue.TryParse(contentTypeValue, out validContentType);
+            var contentTypeIsSetAndValid = MediaTypeWithQualityHeaderValue.TryParse(contentTypeValue, out var validContentType);
+            if (contentTypeIsSetAndValid)
+                return new StringContent(input.Message ?? string.Empty, Encoding.GetEncoding(validContentType.CharSet ?? Encoding.UTF8.WebName));
         }
 
-        return contentTypeIsSetAndValid
-            ? new StringContent(input.Message ?? "", Encoding.GetEncoding(validContentType.CharSet ?? Encoding.UTF8.WebName))
-            : new StringContent(input.Message ?? "");
+        return new StringContent(input.Message ?? string.Empty);
     }
 
     private static object TryParseRequestStringResultAsJToken(string response)

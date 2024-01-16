@@ -139,14 +139,16 @@ public class UnitTests
             Headers = new Header[0],
             Message = ""
         };
+
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
-            Username = "Foo",
-            Password = "Bar"
+            Username = Guid.NewGuid().ToString(),
+            Password = Guid.NewGuid().ToString()
         };
+
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
 
@@ -260,7 +262,7 @@ public class UnitTests
             .Respond("application/json", output);
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
-        var resultBody = result.Body as JToken;
+        var resultBody = (JToken)result.Body;
         Assert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
     }
 

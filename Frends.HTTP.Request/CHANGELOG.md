@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.2] - 2024-01-16
+### Fixed
+- Fixed misleading documentation. 
+
 ## [1.1.1] - 2023-06-09
 ### Fixed
 - Fixed issue with terminating the Task by adding cancellationToken to the method ReadAsStringAsync when JToken as ReturnFormat. 
