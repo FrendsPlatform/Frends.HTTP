@@ -38,7 +38,7 @@ public class HTTP
     }
 
     /// <summary>
-    /// Execute a HTTP or REST request.
+    /// Frends Task for executing HTTP requests with String or JSON payload.
     /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends.HTTP.Request)
     /// </summary>
     /// <param name="input"></param>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
     <Authors>Frends</Authors>
 	<Copyright>Frends</Copyright>
 	<Company>Frends</Company>
@@ -10,7 +10,7 @@
 	<PackageTags>Frends</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Description>Frends task to execute HTTP Request.</Description>
+	<Description>Frends Task for executing HTTP requests with String or JSON payload.</Description>
 	<PackageProjectUrl>https://frends.com/</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/FrendsPlatform/Frends.HTTP/tree/main/Frends.HTTP.Request</RepositoryUrl>
   </PropertyGroup>
