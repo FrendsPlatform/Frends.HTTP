@@ -126,7 +126,7 @@ internal static class Extensions
                 return new[] { certificate };
             }
 
-            var chain = new X509Chain();
+            using var chain = new X509Chain();
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
             chain.Build(certificate);
 
