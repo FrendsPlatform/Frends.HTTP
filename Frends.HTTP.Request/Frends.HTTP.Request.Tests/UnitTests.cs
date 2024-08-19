@@ -74,12 +74,12 @@ public class UnitTests
         var input = GetInputParams(
             url: "http://localhost:9191/endpoint",
             method: Method.Method.GET,
-            headers: new Header [1] { contentType },
+            headers: new Header[1] { contentType },
             message: "test"
         );
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
-        var result = (dynamic) await HTTP.Request(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
         StringAssert.Contains(result.Body, "OK");
     }
 
