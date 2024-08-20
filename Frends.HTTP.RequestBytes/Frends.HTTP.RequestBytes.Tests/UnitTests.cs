@@ -143,7 +143,29 @@ public class UnitTests
     }
 
     [TestMethod]
-    public void RequestShuldThrowExceptionIfOptionIsSet()
+    public async Task RequestTestGetWithContent()
+    {
+        var expectedReturn = Encoding.ASCII.GetBytes("OK");
+
+
+        var contentType = new Header { Name = "Content-Type", Value = "text/plain" };
+        var input = GetInputParams(
+            url: "http://localhost:9191/endpoint",
+            method: Method.GET,
+            headers: new Header[1] { contentType },
+            message: "test"
+        );
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        _mockHttpMessageHandler.When(input.Url).WithHeaders("Content-Type", "text/plain").WithPartialContent("test")
+            .Respond("application/octet-stream", "OK");
+
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
+        Assert.AreEqual(expectedReturn, result.Body);
+    }
+
+    [TestMethod]
+    public void RequestShouldThrowExceptionIfOptionIsSet()
     {
         const string expectedReturn = @"'FooBar'";
 
