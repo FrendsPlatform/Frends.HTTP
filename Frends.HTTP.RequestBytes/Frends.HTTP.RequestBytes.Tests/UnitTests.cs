@@ -152,7 +152,7 @@ public class UnitTests
         var input = GetInputParams(
             url: "http://localhost:9191/endpoint",
             method: Method.GET,
-            headers: new Header [1] { contentType },
+            headers: new Header[1] { contentType },
             message: "test"
         );
         var options = new Options { ConnectionTimeoutSeconds = 60 };
@@ -160,7 +160,7 @@ public class UnitTests
         _mockHttpMessageHandler.When(input.Url).WithHeaders("Content-Type", "text/plain").WithPartialContent("test")
             .Respond("application/octet-stream", "OK");
 
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
         Assert.AreEqual(expectedReturn, result.Body);
     }
 
