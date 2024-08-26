@@ -64,6 +64,25 @@ public class UnitTests
     }
 
     [TestMethod]
+    public async Task RequestTestGetWithContent()
+    {
+        const string expectedReturn = "OK";
+        _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithHeaders("Content-Type", "text/plain")
+            .Respond("text/plain", expectedReturn);
+
+        var contentType = new Header { Name = "Content-Type", Value = "text/plain" };
+        var input = GetInputParams(
+            url: "http://localhost:9191/endpoint",
+            method: Method.Method.GET,
+            headers: new Header[1] { contentType }
+        );
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
+        StringAssert.Contains(result.Body, "OK");
+    }
+
+    [TestMethod]
     public void RequestShouldThrowExceptionIfUrlEmpty()
     {
         var input = new Input

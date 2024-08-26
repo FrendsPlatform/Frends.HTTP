@@ -187,12 +187,9 @@ public class HTTP
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Only POST, PUT, PATCH and DELETE can have content, otherwise the HttpClient will fail
-        var isContentAllowed = Enum.TryParse(method, ignoreCase: true, result: out SendMethod _);
-
         using (var request = new HttpRequestMessage(new HttpMethod(method), new Uri(url))
         {
-            Content = isContentAllowed ? content : null,
+            Content = content
         })
         {
 
@@ -201,7 +198,7 @@ public class HTTP
             foreach (var header in headers)
             {
                 var requestHeaderAddedSuccessfully = request.Headers.TryAddWithoutValidation(header.Key, header.Value);
-                if (!requestHeaderAddedSuccessfully && request.Content != null)
+                if (!requestHeaderAddedSuccessfully)
                 {
                     //Could not add to request headers try to add to content headers
                     // this check is probably not needed anymore as the new HttpClient does not seem fail on malformed headers
