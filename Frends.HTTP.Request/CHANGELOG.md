@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.2.1] - 2024-12-30
+## [1.3.0] - 2024-12-30
 ### Changed
 - Descriptions of ClientCertificate suboptions includes clearer information about usage in terms of different types of ClientCertificate.
 
