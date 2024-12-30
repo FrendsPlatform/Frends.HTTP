@@ -58,7 +58,7 @@ public class Options
 
     /// <summary>
     /// Applicable only when Certificate Source is "String".
-    /// Client certificate bytes as a base64 encoded string, pfx (pkcs12) format is recommended. For other supported formates, see
+    /// Client certificate bytes as a base64 encoded string, pfx (pkcs12) format is recommended. For other supported formats, see
     /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2collection.import?view=netframework-4.7.1
     /// </summary>
     /// <example>domain\path</example>
