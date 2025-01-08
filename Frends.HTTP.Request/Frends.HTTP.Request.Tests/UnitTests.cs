@@ -64,6 +64,25 @@ public class UnitTests
     }
 
     [TestMethod]
+    public async Task RequestTestGetWithContent()
+    {
+        const string expectedReturn = "OK";
+        _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithHeaders("Content-Type", "text/plain")
+            .Respond("text/plain", expectedReturn);
+
+        var contentType = new Header { Name = "Content-Type", Value = "text/plain" };
+        var input = GetInputParams(
+            url: "http://localhost:9191/endpoint",
+            method: Method.Method.GET,
+            headers: new Header[1] { contentType }
+        );
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
+        StringAssert.Contains(result.Body, "OK");
+    }
+
+    [TestMethod]
     public void RequestShouldThrowExceptionIfUrlEmpty()
     {
         var input = new Input
@@ -139,14 +158,16 @@ public class UnitTests
             Headers = new Header[0],
             Message = ""
         };
+
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
-            Username = "Foo",
-            Password = "Bar"
+            Username = Guid.NewGuid().ToString(),
+            Password = Guid.NewGuid().ToString()
         };
+
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
 
@@ -185,7 +206,7 @@ public class UnitTests
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("FooBar"));
     }
-    
+
     [TestMethod]
     public async Task AuthorizationHeaderShouldOverrideOption()
     {
@@ -223,7 +244,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
             Message = "",
-            ResultMethod = ResultMethod.REST
+            ResultMethod = ReturnFormat.JToken
         };
         var options = new Options
         {
@@ -252,7 +273,7 @@ public class UnitTests
 
 
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
@@ -260,15 +281,15 @@ public class UnitTests
             .Respond("application/json", output);
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
-        var resultBody = result.Body as JToken;
+        var resultBody = (JToken)result.Body;
         Assert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
     }
-    
+
     [TestMethod]
     public async Task RestRequestShouldNotThrowIfReturnIsEmpty()
     {
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
@@ -279,12 +300,12 @@ public class UnitTests
 
         Assert.AreEqual(new JValue(""), result.Body);
     }
-    
+
     [TestMethod]
     public void RestRequestShouldThrowIfReturnIsNotValidJson()
     {
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.REST };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
         var options = new Options
         { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
 
@@ -295,14 +316,14 @@ public class UnitTests
 
         Assert.AreEqual("Unable to read response message as json: <fail>failbar<fail>", ex.Message);
     }
-    
+
     [TestMethod]
     public async Task HttpRequestBodyReturnShouldBeOfTypeString()
     {
         const string expectedReturn = "<foo>BAR</foo>";
 
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ResultMethod.HTTP };
+        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.String };
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         _mockHttpMessageHandler.When(input.Url)
@@ -311,7 +332,7 @@ public class UnitTests
 
         Assert.AreEqual(expectedReturn, result.Body);
     }
-    
+
     [TestMethod]
     public async Task PatchShouldComeThrough()
     {
@@ -323,7 +344,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[] { },
             Message = message,
-            ResultMethod = ResultMethod.HTTP
+            ResultMethod = ReturnFormat.String
         };
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
@@ -335,7 +356,7 @@ public class UnitTests
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("foo åäö"));
     }
-    
+
     [TestMethod]
     public async Task RequestShouldSetEncodingWithContentTypeCharsetIgnoringCase()
     {
@@ -350,7 +371,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[1] { contentType },
             Message = requestMessage,
-            ResultMethod = ResultMethod.HTTP
+            ResultMethod = ReturnFormat.String
         };
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
@@ -361,20 +382,5 @@ public class UnitTests
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.IsTrue(result.Body.Contains("foo åäö"));
-    }
-}
-
-public class MockHttpClientFactory : IHttpClientFactory
-{
-    private readonly MockHttpMessageHandler _mockHttpMessageHandler;
-
-    public MockHttpClientFactory(MockHttpMessageHandler mockHttpMessageHandler)
-    {
-        _mockHttpMessageHandler = mockHttpMessageHandler;
-    }
-    public HttpClient CreateClient(Options options)
-    {
-        return _mockHttpMessageHandler.ToHttpClient();
-
     }
 }

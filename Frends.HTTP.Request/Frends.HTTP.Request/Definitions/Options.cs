@@ -46,7 +46,8 @@ public class Options
     public CertificateSource ClientCertificateSource { get; set; }
 
     /// <summary>
-    /// Path to the Client Certificate when using a file as the Certificate Source, pfx (pkcs12) files are recommended. For other supported formats, see
+    /// Applicable only when Certificate Source is "File".
+    /// Path to the Client Certificate, pfx (pkcs12) files are recommended. For other supported formats, see
     /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2collection.import?view=netframework-4.7.1
     /// </summary>
     /// <example>domain\path</example>
@@ -54,7 +55,8 @@ public class Options
     public string ClientCertificateFilePath { get; set; }
 
     /// <summary>
-    /// Client certificate bytes as a base64 encoded string when using a string as the Certificate Source , pfx (pkcs12) format is recommended. For other supported formates, see
+    /// Applicable only when Certificate Source is "String".
+    /// Client certificate bytes as a base64 encoded string, pfx (pkcs12) format is recommended. For other supported formats, see
     /// https://docs.microsoft.com/en-us/dotnet/api/system.security.cryptography.x509certificates.x509certificate2collection.import?view=netframework-4.7.1
     /// </summary>
     /// <example>domain\path</example>
@@ -62,7 +64,8 @@ public class Options
     public string ClientCertificateInBase64 { get; set; }
 
     /// <summary>
-    /// Key phrase (password) to access the certificate data when using a string or file as the Certificate Source
+    /// Applicable only when Certificate Source is "File" or "String".
+    /// Key phrase (password) to access the certificate data
     /// </summary>
     /// <example>string value</example>
     [PasswordPropertyText]
@@ -70,6 +73,7 @@ public class Options
     public string ClientCertificateKeyPhrase { get; set; }
 
     /// <summary>
+    /// Applicable only when Certificate Source is "CertificateStore".
     /// Thumbprint for using client certificate authentication.
     /// </summary>
     /// <example>thumbprint</example>
@@ -111,7 +115,7 @@ public class Options
     public bool AllowInvalidResponseContentTypeCharSet { get; set; }
 
     /// <summary>
-    /// Throw exception if return code of request is not successfull
+    /// Throw exception if return code of request is not successfull.
     /// </summary>
     /// <example>true</example>
     public bool ThrowExceptionOnErrorResponse { get; set; }

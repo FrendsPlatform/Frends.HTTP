@@ -1,4 +1,4 @@
-﻿namespace Frends.HTTP.Request.Definitions;
+﻿namespace Frends.HTTP.SendBytes.Definitions;
 
 /// <summary>
 /// Allowed methods for sending content

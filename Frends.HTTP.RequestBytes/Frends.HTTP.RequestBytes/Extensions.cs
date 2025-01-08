@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -9,6 +10,7 @@ using Frends.HTTP.RequestBytes.Definitions;
 
 namespace Frends.HTTP.RequestBytes;
 
+[ExcludeFromCodeCoverage]
 internal static class Extensions
 {
     internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
@@ -124,7 +126,7 @@ internal static class Extensions
                 return new[] { certificate };
             }
 
-            var chain = new X509Chain();
+            using var chain = new X509Chain();
             chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
             chain.Build(certificate);
 

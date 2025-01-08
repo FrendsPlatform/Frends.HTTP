@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
-    <Version>1.0.0</Version>
+    <Version>1.3.0</Version>
     <Authors>Frends</Authors>
 	<Copyright>Frends</Copyright>
 	<Company>Frends</Company>
@@ -10,7 +10,7 @@
 	<PackageTags>Frends</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Description>Frends task to execute HTTP Request.</Description>
+	<Description>Frends Task for executing HTTP requests with String or JSON payload.</Description>
 	<PackageProjectUrl>https://frends.com/</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/FrendsPlatform/Frends.HTTP/tree/main/Frends.HTTP.Request</RepositoryUrl>
   </PropertyGroup>
@@ -25,6 +25,7 @@
 	<PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+	<PackageReference Include="System.DirectoryServices" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

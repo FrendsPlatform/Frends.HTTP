@@ -94,7 +94,7 @@ public class UnitTests
         _mockHttpMessageHandler.When(input.Url)
             .Respond("application/octet-stream", String.Empty);
 
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
         Assert.AreEqual(0, result.BodySizeInMegaBytes);
         Assert.IsEmpty(result.Body);
     }
@@ -109,8 +109,10 @@ public class UnitTests
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var actualFileBytes = File.ReadAllBytes(localTestFilePath);
+
+        using var ms = new MemoryStream(actualFileBytes);
         _mockHttpMessageHandler.When(input.Url)
-            .Respond("image/png", new MemoryStream(actualFileBytes));
+            .Respond("image/png", ms);
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
@@ -200,8 +202,8 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
-            Username = "Foo",
-            Password = "Bar"
+            Username = Guid.NewGuid().ToString(),
+            Password = Guid.NewGuid().ToString()
         };
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
@@ -236,7 +238,7 @@ public class UnitTests
 
         _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
             .Respond("application/octet-stream", "FooBar");
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.AreEqual(expectedReturn, result.Body);
@@ -263,7 +265,7 @@ public class UnitTests
 
         _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
             .Respond("application/octet-stream", "FooBar");
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.AreEqual(expectedReturn, result.Body);
@@ -286,7 +288,7 @@ public class UnitTests
         _mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
             .Respond("application/octet-stream", message);
 
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.AreEqual(message, Encoding.UTF8.GetString(result.Body));
@@ -312,7 +314,7 @@ public class UnitTests
         _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType).WithContent(requestMessage)
             .Respond("application/octet-stream", "foo åäö");
 
-        var result = (dynamic) await HTTP.RequestBytes(input, options, CancellationToken.None);
+        var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         Assert.AreEqual("foo åäö", Encoding.UTF8.GetString(result.Body));
