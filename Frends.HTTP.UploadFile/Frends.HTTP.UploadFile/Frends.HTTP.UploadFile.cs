@@ -7,13 +7,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Frends.HTTP.UploadFile.Definitions;
 
-namespace Frends.HTTP.UploadFile.Definitions;
+namespace Frends.HTTP.UploadFile;
 
 /// <summary>
 /// Represents a task that posts a file to a web API endpoint.
@@ -27,8 +26,8 @@ public static class UploadFileTask
     /// <param name="input">The input parameters specifying the file to be sent.</param>
     /// <param name="options">The optional parameters controlling the file upload behavior.</param>
     /// <param name="cancellationToken">The cancellation token that can be used to cancel the upload operation.</param>
-    /// <returns>An object containing the response from the server, including the response body, headers, and status code.</returns>
-    public static async Task<object> UploadFile([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
+    /// <returns>Object { string Body, Dictionary[string, string] Headers, int StatusCode }</returns>
+    public static async Task<Response> UploadFile([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
     {
         using var handler = new HttpClientHandler();
         handler.SetHandleSettingsBasedOnOptions(options);
@@ -37,17 +36,11 @@ public static class UploadFileTask
         var responseMessage = await GetHttpRequestResponseAsync(httpClient, input, options, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        string body = string.Empty;
-        IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders = new Dictionary<string, IEnumerable<string>>();
+        string body = await responseMessage.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        HttpHeaders contentHeaders = responseMessage.Content.Headers;
+        HttpHeaders headers = responseMessage.Headers;
 
-        if (responseMessage.Content is not null)
-        {
-            body = await responseMessage.Content.ReadAsStringAsync().ConfigureAwait(false);
-            contentHeaders = responseMessage.Content.Headers;
-        }
-
-        var headers = ((IEnumerable<KeyValuePair<string, IEnumerable<string>>>) responseMessage.Headers ?? new Dictionary<string, IEnumerable<string>>());
-        var responseHeaders = GetResponseHeaderDictionary(headers, contentHeaders);
+        var responseHeaders = CombineHeaders(new HttpHeaders[] { headers, contentHeaders });
 
         var response = new Response
         {
@@ -64,13 +57,13 @@ public static class UploadFileTask
         return response;
     }
 
-    //Combine response- and responsecontent header to one dictionary
-    private static Dictionary<string, string> GetResponseHeaderDictionary(IEnumerable<KeyValuePair<string, IEnumerable<string>>> responseMessageHeaders, IEnumerable<KeyValuePair<string, IEnumerable<string>>> contentHeaders)
+    //Combine http headears collections into one dictionary
+    private static Dictionary<string, string> CombineHeaders(HttpHeaders[] headers)
     {
-        var responseHeaders = responseMessageHeaders.ToDictionary(h => h.Key, h => string.Join(";", h.Value));
-        var allHeaders = contentHeaders.ToDictionary(h => h.Key, h => string.Join(";", h.Value));
-        responseHeaders.ToList().ForEach(x => allHeaders[x.Key] = x.Value);
-        return allHeaders;
+        var result = headers
+            .SelectMany(dict => dict)
+            .ToDictionary(pair => pair.Key, pair => string.Join(";", pair.Value));
+        return result;
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(HttpClient httpClient, Input input, Options options, CancellationToken cancellationToken)
@@ -91,7 +84,7 @@ public static class UploadFileTask
             }
         }
 
-        using MemoryStream reader = new MemoryStream(File.ReadAllBytes(input.FilePath));
+        using MemoryStream reader = new(File.ReadAllBytes(input.FilePath));
         using HttpContent content = new StreamContent(reader);
         var headerDict = input.Headers.ToDictionary(key => key.Name, value => value.Value, StringComparer.InvariantCultureIgnoreCase);
 
@@ -117,60 +110,5 @@ public static class UploadFileTask
         var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         return response;
-    }
-}
-
-/// <summary>
-/// Provides extension methods for various types, allowing for additional functionality to be added to existing types.
-/// </summary>
-internal static class HttpClientHandlerExtensions
-{
-    internal static void SetHandleSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
-    {
-        switch (options.Authentication)
-        {
-            case Authentication.WindowsIntegratedSecurity:
-                handler.UseDefaultCredentials = true;
-                break;
-            case Authentication.WindowsAuthentication:
-                var domainAndUserName = options.Username.Split('\\');
-                if (domainAndUserName.Length != 2)
-                {
-                    throw new ArgumentException($@"Username needs to be 'domain\username' now it was '{options.Username}'");
-                }
-                handler.Credentials = new NetworkCredential(domainAndUserName[1], options.Password, domainAndUserName[0]);
-                break;
-            case Authentication.ClientCertificate:
-                handler.ClientCertificates.Add(GetCertificate(options.CertificateThumbprint));
-                break;
-        }
-
-        handler.AllowAutoRedirect = options.FollowRedirects;
-
-        if (options.AllowInvalidCertificate)
-        {
-            handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
-        }
-    }
-
-    internal static X509Certificate2 GetCertificate(string thumbprint)
-    {
-        thumbprint = Regex.Replace(thumbprint, @"[^\da-zA-z]", string.Empty).ToUpper();
-        var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-        try
-        {
-            store.Open(OpenFlags.ReadOnly);
-            var signingCert = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-            if (signingCert.Count == 0)
-            {
-                throw new FileNotFoundException($"Certificate with thumbprint: '{thumbprint}' not found in current user cert store.");
-            }
-
-            return signingCert[0];
-        }
-        finally
-        {
-            store.Close();
-        }
     }
 }

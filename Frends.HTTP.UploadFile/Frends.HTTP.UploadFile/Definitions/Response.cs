@@ -2,7 +2,6 @@
 
 namespace Frends.HTTP.UploadFile.Definitions;
 
-
 /// <summary>
 /// Represents the response received from the HTTP server after sending a request.
 /// </summary>
