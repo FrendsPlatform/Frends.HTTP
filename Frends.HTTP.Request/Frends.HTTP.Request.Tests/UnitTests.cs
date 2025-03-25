@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework.Legacy;
 
 namespace Frends.HTTP.Request.Tests;
 
@@ -60,7 +61,7 @@ public class UnitTests
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
-        Assert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -79,7 +80,7 @@ public class UnitTests
         var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
-        StringAssert.Contains(result.Body, "OK");
+        NUnit.Framework.Legacy.StringAssert.Contains(result.Body, "OK");
     }
 
     [TestMethod]
@@ -97,7 +98,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains("Url can not be empty."));
+        ClassicAssert.IsTrue(ex.Message.Contains("Url can not be empty."));
     }
 
     [TestMethod]
@@ -120,7 +121,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<WebException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains("FooBar"));
+        ClassicAssert.IsTrue(ex.Message.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -143,7 +144,7 @@ public class UnitTests
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
-        Assert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -177,7 +178,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -204,7 +205,7 @@ public class UnitTests
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -231,7 +232,7 @@ public class UnitTests
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
     }
 
     [TestMethod]
@@ -259,7 +260,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<FileNotFoundException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
+        ClassicAssert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
     }
 
     [TestMethod]
@@ -282,7 +283,7 @@ public class UnitTests
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
         var resultBody = (JToken)result.Body;
-        Assert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
+        ClassicAssert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
     }
 
     [TestMethod]
@@ -298,7 +299,7 @@ public class UnitTests
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        Assert.AreEqual(new JValue(""), result.Body);
+        ClassicAssert.AreEqual(new JValue(""), result.Body);
     }
 
     [TestMethod]
@@ -314,7 +315,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<JsonReaderException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
-        Assert.AreEqual("Unable to read response message as json: <fail>failbar<fail>", ex.Message);
+        ClassicAssert.AreEqual("Unable to read response message as json: <fail>failbar<fail>", ex.Message);
     }
 
     [TestMethod]
@@ -330,7 +331,7 @@ public class UnitTests
             .Respond("text/plain", expectedReturn);
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        Assert.AreEqual(expectedReturn, result.Body);
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
     [TestMethod]
@@ -354,7 +355,7 @@ public class UnitTests
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.IsTrue(result.Body.Contains("foo åäö"));
+        ClassicAssert.IsTrue(result.Body.Contains("foo åäö"));
     }
 
     [TestMethod]
@@ -381,6 +382,6 @@ public class UnitTests
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.IsTrue(result.Body.Contains("foo åäö"));
+        ClassicAssert.IsTrue(result.Body.Contains("foo åäö"));
     }
 }
