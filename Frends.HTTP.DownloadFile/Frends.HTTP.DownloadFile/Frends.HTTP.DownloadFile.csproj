@@ -1,28 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <Version>1.1.0</Version>
-    <Authors>Frends</Authors>
-	<Copyright>Frends</Copyright>
-	<Company>Frends</Company>
-	<Product>Frends</Product>
-	<PackageTags>Frends</PackageTags>
-	<PackageLicenseExpression>MIT</PackageLicenseExpression>
-	<GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Description>Frends Task to fetch file over HTTP.</Description>
-	<PackageProjectUrl>https://frends.com/</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/FrendsPlatform/Frends.HTTP/tree/main/Frends.HTTP.DownloadFile</RepositoryUrl>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net6.0</TargetFrameworks>
+		<Version>1.1.1</Version>
+		<Authors>Frends</Authors>
+		<Copyright>Frends</Copyright>
+		<Company>Frends</Company>
+		<Product>Frends</Product>
+		<PackageTags>Frends</PackageTags>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<Description>Frends Task to fetch file over HTTP.</Description>
+		<PackageProjectUrl>https://frends.com/</PackageProjectUrl>
+		<RepositoryUrl>
+			https://github.com/FrendsPlatform/Frends.HTTP/tree/main/Frends.HTTP.DownloadFile</RepositoryUrl>
+	</PropertyGroup>
 
-  <ItemGroup>
-	  <None Include="FrendsTaskMetadata.json" Pack="true" PackagePath="/">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="FrendsTaskMetadata.json" Pack="true" PackagePath="/">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="System.Runtime.Caching" Version="9.0.3" />
+	</ItemGroup>
 </Project>
-
