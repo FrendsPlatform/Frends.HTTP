@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.1] - 2025-03-25
+## [1.2.0] - 2025-03-25
 ### Changed
 - Update packages:
   System.Runtime.Caching  7.0.0  -> 9.0.3
