@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using Method = Frends.HTTP.RequestBytes.Definitions.Method;
 using System.Net;
+using NUnit.Framework.Legacy;
 
 namespace Frends.HTTP.RequestBytes.Tests;
 
@@ -55,7 +56,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
             await HTTP.RequestBytes(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains("Url can not be empty."));
+        ClassicAssert.IsTrue(ex.Message.Contains("Url can not be empty."));
     }
 
     [TestMethod]
@@ -82,7 +83,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<FileNotFoundException>(async () =>
             await HTTP.RequestBytes(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
+        ClassicAssert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
     }
 
     [TestMethod]
@@ -95,8 +96,8 @@ public class UnitTests
             .Respond("application/octet-stream", String.Empty);
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
-        Assert.AreEqual(0, result.BodySizeInMegaBytes);
-        Assert.IsEmpty(result.Body);
+        ClassicAssert.AreEqual(0, result.BodySizeInMegaBytes);
+        ClassicAssert.IsEmpty(result.Body);
     }
 
     [TestMethod]
@@ -116,8 +117,8 @@ public class UnitTests
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        Assert.NotNull(result.Body);
-        Assert.AreEqual(actualFileBytes, result.Body);
+        ClassicAssert.NotNull(result.Body);
+        ClassicAssert.AreEqual(actualFileBytes, result.Body);
     }
 
     [TestMethod]
@@ -139,7 +140,7 @@ public class UnitTests
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        Assert.AreEqual(expectedReturn, result.Body);
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
     [TestMethod]
@@ -182,7 +183,7 @@ public class UnitTests
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        Assert.AreEqual(expectedReturn, result.Body);
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
     [TestMethod]
@@ -214,7 +215,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(expectedReturn, result.Body);
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
     [TestMethod]
@@ -241,7 +242,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(expectedReturn, result.Body);
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
     [TestMethod]
@@ -268,7 +269,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(expectedReturn, result.Body);
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
     [TestMethod]
@@ -291,7 +292,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(message, Encoding.UTF8.GetString(result.Body));
+        ClassicAssert.AreEqual(message, Encoding.UTF8.GetString(result.Body));
     }
 
     [TestMethod]
@@ -317,7 +318,7 @@ public class UnitTests
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual("foo åäö", Encoding.UTF8.GetString(result.Body));
+        ClassicAssert.AreEqual("foo åäö", Encoding.UTF8.GetString(result.Body));
     }
 }
 
