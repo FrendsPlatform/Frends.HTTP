@@ -129,7 +129,7 @@ public class Options
     public bool AutomaticCookieHandling { get; set; } = true;
 
     /// <summary>
-    /// If set to true, an existing file at the target path will be overwritten during download.
+    /// If set to true, an existing file at the target path will be overwritten during download
     /// <example>false</example>
     [DefaultValue(false)]
     public bool Overwrite { get; set; } = false;
