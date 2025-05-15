@@ -284,4 +284,48 @@ public class UnitTests
             throw new Exception(ex.Message);
         }
     }
+
+    [TestMethod]
+    public async Task TestFileDownload_WithOverwriteTrue_ShouldOverwriteExistingFile()
+    {
+        File.WriteAllText(_filePath, "OLD CONTENT");
+
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        var options = new Options
+        {
+            AllowInvalidCertificate = true,
+            AllowInvalidResponseContentTypeCharSet = true,
+            Authentication = Authentication.None,
+            AutomaticCookieHandling = true,
+            CertificateThumbprint = "",
+            ClientCertificateFilePath = "",
+            ClientCertificateInBase64 = "",
+            ClientCertificateKeyPhrase = "",
+            ClientCertificateSource = CertificateSource.File,
+            ConnectionTimeoutSeconds = 60,
+            FollowRedirects = true,
+            LoadEntireChainForCertificate = true,
+            Password = "",
+            ThrowExceptionOnErrorResponse = true,
+            Token = "",
+            Username = "domain\\username",
+            Overwrite = true
+        };
+
+        var result = await HTTP.DownloadFile(input, options, default);
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.Success);
+        Assert.IsNotNull(result.FilePath);
+        Assert.IsTrue(File.Exists(result.FilePath));
+
+        var actualContent = File.ReadAllText(_filePath);
+        Assert.AreNotEqual("OLD CONTENT", actualContent, "File should have been overwritten.");
+    }
 }
