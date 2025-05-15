@@ -288,6 +288,8 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_WithOverwriteTrue_ShouldOverwriteExistingFile()
     {
+        File.WriteAllText(_filePath, "OLD CONTENT");
+
         var input = new Input
         {
             Url = _targetFileAddress,
