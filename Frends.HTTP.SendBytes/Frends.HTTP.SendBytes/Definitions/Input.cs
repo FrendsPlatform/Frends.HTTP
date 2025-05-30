@@ -27,6 +27,7 @@ public class Input
     /// The content to send as byte array
     /// </summary>
     /// <example>{ "Body": "Message" }</example>
+    [DisplayFormat(DataFormatString = "Expression")]
     public byte[] ContentBytes { get; set; }
 
     /// <summary>
