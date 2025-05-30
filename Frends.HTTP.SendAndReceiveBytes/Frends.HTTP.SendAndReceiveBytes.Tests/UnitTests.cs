@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Text;
 using Method = Frends.HTTP.SendAndReceiveBytes.Definitions.Method;
 using System.Net;
+using NUnit.Framework.Legacy;
 
 namespace Frends.HTTP.SendAndReceiveBytes.Tests;
 
@@ -54,7 +55,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
             await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains("Url can not be empty."));
+        ClassicAssert.IsTrue(ex.Message.Contains("Url can not be empty."));
     }
 
     [TestMethod]
@@ -81,7 +82,7 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<FileNotFoundException>(async () =>
             await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None));
 
-        Assert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
+        ClassicAssert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
     }
 
     [TestMethod]
@@ -94,7 +95,7 @@ public class UnitTests
             .Respond("application/octet-stream", string.Empty);
 
         var result = (dynamic)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
-        Assert.IsEmpty(result.BodyBytes);
+        ClassicAssert.IsEmpty(result.BodyBytes);
     }
 
     [TestMethod]
@@ -114,7 +115,7 @@ public class UnitTests
 
         var result = (Result)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
 
-        Assert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
+        ClassicAssert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
     }
 
     [TestMethod]
@@ -155,7 +156,7 @@ public class UnitTests
 
         var result = (Result)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
 
-        Assert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
+        ClassicAssert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
     }
 
     [TestMethod]
@@ -185,7 +186,7 @@ public class UnitTests
         var result = (Result)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
+        ClassicAssert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
     }
 
     [TestMethod]
@@ -210,7 +211,7 @@ public class UnitTests
         var result = (Result)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
+        ClassicAssert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
     }
 
     [TestMethod]
@@ -235,7 +236,7 @@ public class UnitTests
         var result = (Result)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
+        ClassicAssert.AreEqual(Encoding.ASCII.GetBytes("FooBar"), result.BodyBytes);
     }
 
     [TestMethod]
@@ -264,7 +265,7 @@ public class UnitTests
         var result = (Result)await HTTP.SendAndReceiveBytes(input, options, CancellationToken.None);
 
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        Assert.AreEqual(Encoding.UTF8.GetBytes(expectedString), result.BodyBytes);
+        ClassicAssert.AreEqual(Encoding.UTF8.GetBytes(expectedString), result.BodyBytes);
     }
 }
 
