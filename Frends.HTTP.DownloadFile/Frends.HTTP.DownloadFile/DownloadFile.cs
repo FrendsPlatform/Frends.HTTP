@@ -72,8 +72,10 @@ public static class HTTP
                 }
             }
 
+            var fileMode = options.Overwrite ? FileMode.Create : FileMode.CreateNew;
+
             using var s = await httpClient.GetStreamAsync(input.Url, cancellationToken);
-            using var fs = new FileStream(input.FilePath, FileMode.CreateNew);
+            using var fs = new FileStream(input.FilePath, fileMode);
             await s.CopyToAsync(fs, cancellationToken);
 
             return new Result(true, fs.Name);
