@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.0] - 2025-10-03
+### Changed
+- Changed default return format from String to JToken
+
 ## [1.4.0] - 2025-03-25
 ### Changed
 - Update packages:
