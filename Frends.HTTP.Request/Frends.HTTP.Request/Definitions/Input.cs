@@ -19,7 +19,7 @@ public class Input
     /// The HTTP result method to be used with the request.
     /// </summary>
     /// <example>REST</example>
-    [DefaultValue(ReturnFormat.String)]
+    [DefaultValue(ReturnFormat.JToken)]
     public ReturnFormat ResultMethod { get; set; }
 
     /// <summary>
