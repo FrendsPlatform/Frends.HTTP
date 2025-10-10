@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.3.0] - 2025-03-25
+## [1.3.0] - 2025-10-10
 ### Changed
 - Changed the return type of RequestBytes from Task<object> to Task<Result>
 
