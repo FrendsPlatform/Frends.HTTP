@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.0] - 2025-10-10
+### Changed
+- Changed the return type of SendBytes from Task<object> to Task<Result>
+
 ## [1.3.0] - 2025-03-25
 ### Changed
 - Update packages:
