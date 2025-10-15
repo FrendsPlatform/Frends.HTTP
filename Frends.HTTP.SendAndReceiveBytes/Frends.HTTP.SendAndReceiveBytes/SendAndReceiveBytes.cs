@@ -42,7 +42,7 @@ public class HTTP
     /// <param name="options"></param>
     /// <param name="cancellationToken"/>
     /// <returns>Object { byte[] BodyBytes, double BodySizeInMegaBytes, MediaTypeHeaderValue ContentType, Dictionary(string, string) Headers, int StatusCode }</returns>
-    public static async Task<object> SendAndReceiveBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
+    public static async Task<Result> SendAndReceiveBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
 
