@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2025-11-18
+### Added
+- Added CertificateStoreLocation option to allow selection between CurrentUser and LocalMachine certificate stores when using certificate authentication.
+
 ## [1.5.0] - 2025-10-03
 ### Changed
 - Changed default return format from String to JToken
