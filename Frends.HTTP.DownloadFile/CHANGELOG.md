@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.4.0] - 2025-11-18
+### Added
+- Added CertificateStoreLocation option to allow selection between CurrentUser and LocalMachine certificate stores when using certificate authentication.
+
 ## [1.3.0] - 2025-05-15
 ### Changed
 - Added new Overwrite parameter to control whether the downloaded file should replace an existing one.
