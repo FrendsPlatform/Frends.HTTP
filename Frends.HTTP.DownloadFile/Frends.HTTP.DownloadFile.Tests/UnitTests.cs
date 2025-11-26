@@ -1,9 +1,12 @@
 ﻿using Frends.HTTP.DownloadFile.Definitions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Pluralsight.Crypto;
+using RichardSzalay.MockHttp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -14,14 +17,20 @@ public class UnitTests
 {
     private static readonly string _directory = Path.Combine(Environment.CurrentDirectory, "testfiles");
     private static readonly string _filePath = Path.Combine(_directory, "picture.jpg");
-    private static readonly string _targetFileAddress = @"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/1200px-Google_2015_logo.svg.png";
+    private static readonly string _targetFileAddress = @"http://localhost:9999/testfile.png";
     private readonly string _certificatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
     private readonly string _privateKeyPassword = "password";
+    private MockHttpMessageHandler _mockHttpMessageHandler;
+    private static readonly byte[] _mockFileContent = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }; // PNG header bytes
 
     [TestInitialize]
     public void TestInitialize()
     {
+        _mockHttpMessageHandler = new MockHttpMessageHandler();
+        _mockHttpMessageHandler.When(_targetFileAddress)
+            .Respond(HttpStatusCode.OK, new ByteArrayContent(_mockFileContent));
         HTTP.ClearClientCache();
+        HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
         Directory.CreateDirectory(_directory);
     }
 
