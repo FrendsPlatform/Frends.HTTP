@@ -409,6 +409,9 @@ public class UnitTests
     [ExpectedException(typeof(Exception))]
     public async Task TestFileDownload_WithCertificateStoreLocation_LocalMachine_NotFound()
     {
+        // Use real HTTP client factory to test certificate lookup failure
+        HTTP.ClientFactory = new HttpClientFactory();
+
         var input = new Input
         {
             Url = _targetFileAddress,
