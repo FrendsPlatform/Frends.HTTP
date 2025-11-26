@@ -340,4 +340,140 @@ public class UnitTests
         var actualContent = File.ReadAllText(_filePath);
         Assert.AreNotEqual("OLD CONTENT", actualContent, "File should have been overwritten.");
     }
+
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public async Task TestFileDownload_WithEmptyUrl_ShouldThrowException()
+    {
+        var input = new Input
+        {
+            Url = "",
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        var options = new Options
+        {
+            AllowInvalidCertificate = true,
+            Authentication = Authentication.None,
+            ConnectionTimeoutSeconds = 60
+        };
+
+        await HTTP.DownloadFile(input, options, default);
+    }
+
+    [TestMethod]
+    public async Task TestFileDownload_WithCertificateStoreLocation_CurrentUser()
+    {
+        var tp = CertificateHandler(_certificatePath, _privateKeyPassword, false, null);
+
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        var options = new Options
+        {
+            AllowInvalidCertificate = true,
+            AllowInvalidResponseContentTypeCharSet = true,
+            Authentication = Authentication.ClientCertificate,
+            AutomaticCookieHandling = true,
+            CertificateThumbprint = tp,
+            ClientCertificateFilePath = _certificatePath,
+            ClientCertificateInBase64 = "",
+            ClientCertificateKeyPhrase = _privateKeyPassword,
+            ClientCertificateSource = CertificateSource.CertificateStore,
+            CertificateStoreLocation = CertificateStoreLocation.CurrentUser,
+            ConnectionTimeoutSeconds = 60,
+            FollowRedirects = true,
+            LoadEntireChainForCertificate = false,
+            Password = "",
+            ThrowExceptionOnErrorResponse = true,
+            Token = "",
+            Username = "domain\\username"
+        };
+
+        var result = await HTTP.DownloadFile(input, options, default);
+
+        Assert.IsNotNull(result);
+        Assert.IsTrue(result.Success);
+        Assert.IsNotNull(result.FilePath);
+        Assert.IsTrue(File.Exists(result.FilePath));
+
+        CertificateHandler(_certificatePath, _privateKeyPassword, true, tp);
+    }
+
+    [TestMethod]
+    [ExpectedException(typeof(Exception))]
+    public async Task TestFileDownload_WithCertificateStoreLocation_LocalMachine_NotFound()
+    {
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        var options = new Options
+        {
+            AllowInvalidCertificate = true,
+            AllowInvalidResponseContentTypeCharSet = true,
+            Authentication = Authentication.ClientCertificate,
+            AutomaticCookieHandling = true,
+            CertificateThumbprint = "NONEXISTENTTHUMBPRINT",
+            ClientCertificateFilePath = "",
+            ClientCertificateInBase64 = "",
+            ClientCertificateKeyPhrase = "",
+            ClientCertificateSource = CertificateSource.CertificateStore,
+            CertificateStoreLocation = CertificateStoreLocation.LocalMachine,
+            ConnectionTimeoutSeconds = 60,
+            FollowRedirects = true,
+            LoadEntireChainForCertificate = false,
+            Password = "",
+            ThrowExceptionOnErrorResponse = true,
+            Token = "",
+            Username = "domain\\username"
+        };
+
+        await HTTP.DownloadFile(input, options, default);
+    }
+
+    [TestMethod]
+    public async Task TestFileDownload_WithOverwriteFalse_ExistingFile_ShouldThrow()
+    {
+        File.WriteAllText(_filePath, "OLD CONTENT");
+
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        var options = new Options
+        {
+            AllowInvalidCertificate = true,
+            AllowInvalidResponseContentTypeCharSet = true,
+            Authentication = Authentication.None,
+            AutomaticCookieHandling = true,
+            CertificateThumbprint = "",
+            ClientCertificateFilePath = "",
+            ClientCertificateInBase64 = "",
+            ClientCertificateKeyPhrase = "",
+            ClientCertificateSource = CertificateSource.File,
+            ConnectionTimeoutSeconds = 60,
+            FollowRedirects = true,
+            LoadEntireChainForCertificate = true,
+            Password = "",
+            ThrowExceptionOnErrorResponse = true,
+            Token = "",
+            Username = "domain\\username",
+            Overwrite = false
+        };
+
+        await Assert.ThrowsExceptionAsync<Exception>(async () => 
+            await HTTP.DownloadFile(input, options, default));
+    }
 }
