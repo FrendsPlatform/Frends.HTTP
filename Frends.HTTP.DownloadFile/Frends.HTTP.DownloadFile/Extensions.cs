@@ -97,13 +97,13 @@ internal static class Extensions
         bool loadEntireChain, CertificateStoreLocation storeLocation)
     {
         thumbprint = Regex.Replace(thumbprint, @"[^\da-zA-z]", string.Empty).ToUpper();
-        var location = storeLocation == CertificateStoreLocation.CurrentUser 
-            ? StoreLocation.CurrentUser 
+        var location = storeLocation == CertificateStoreLocation.CurrentUser
+            ? StoreLocation.CurrentUser
             : StoreLocation.LocalMachine;
-        var locationText = storeLocation == CertificateStoreLocation.CurrentUser 
-            ? "current user" 
+        var locationText = storeLocation == CertificateStoreLocation.CurrentUser
+            ? "current user"
             : "local machine";
-        
+
         using var store = new X509Store(StoreName.My, location);
         store.Open(OpenFlags.ReadOnly);
         var signingCert = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);

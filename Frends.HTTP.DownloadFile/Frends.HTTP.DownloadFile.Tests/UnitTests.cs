@@ -28,9 +28,9 @@ public class UnitTests
     {
         _mockHttpMessageHandler = new MockHttpMessageHandler();
         _mockHttpMessageHandler.When(_targetFileAddress)
-            .Respond(req => new HttpResponseMessage(HttpStatusCode.OK) 
-            { 
-                Content = new ByteArrayContent(_mockFileContent) 
+            .Respond(req => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(_mockFileContent)
             });
         HTTP.ClearClientCache();
         HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
@@ -476,7 +476,7 @@ public class UnitTests
             Overwrite = false
         };
 
-        await Assert.ThrowsExceptionAsync<Exception>(async () => 
+        await Assert.ThrowsExceptionAsync<Exception>(async () =>
             await HTTP.DownloadFile(input, options, default));
     }
 }
