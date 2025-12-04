@@ -121,7 +121,7 @@ internal static class Extensions
 
         // include the whole chain
         var certificates = chain
-            .ChainElements.Cast<X509ChainElement>()
+            .ChainElements
             .Select(c => c.Certificate)
             .OrderByDescending(c => c.HasPrivateKey)
             .ToArray();

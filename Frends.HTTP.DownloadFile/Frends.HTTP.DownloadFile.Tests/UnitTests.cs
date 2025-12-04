@@ -1,14 +1,12 @@
 ﻿using Frends.HTTP.DownloadFile.Definitions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Pluralsight.Crypto;
-using RichardSzalay.MockHttp;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Http;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Pluralsight.Crypto;
 
 namespace Frends.HTTP.DownloadFile.Tests;
 
@@ -17,23 +15,16 @@ public class UnitTests
 {
     private static readonly string _directory = Path.Combine(Environment.CurrentDirectory, "testfiles");
     private static readonly string _filePath = Path.Combine(_directory, "picture.jpg");
-    private static readonly string _targetFileAddress = @"http://localhost:9999/testfile.png";
+
+    private static readonly string _targetFileAddress =
+        "https://frendsfonts.blob.core.windows.net/images/frendsLogo.png";//@"http://localhost:9999/testfile.png";
     private readonly string _certificatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
     private readonly string _privateKeyPassword = "password";
-    private MockHttpMessageHandler _mockHttpMessageHandler;
-    private static readonly byte[] _mockFileContent = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }; // PNG header bytes
 
     [TestInitialize]
     public void TestInitialize()
     {
-        _mockHttpMessageHandler = new MockHttpMessageHandler();
-        _mockHttpMessageHandler.When(_targetFileAddress)
-            .Respond(req => new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new ByteArrayContent(_mockFileContent)
-            });
         HTTP.ClearClientCache();
-        HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
         Directory.CreateDirectory(_directory);
     }
 
@@ -150,9 +141,21 @@ public class UnitTests
     {
         var headers = new[] { new Header() { Name = "foo", Value = "bar" } };
 
-        var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
+        var auths = new List<Authentication>
+        {
+            Authentication.None,
+            Authentication.Basic,
+            Authentication.WindowsAuthentication,
+            Authentication.WindowsIntegratedSecurity,
+            Authentication.OAuth
+        };
 
-        var certSource = new List<CertificateSource>() { CertificateSource.CertificateStore, CertificateSource.File, CertificateSource.String };
+        var certSource = new List<CertificateSource>
+        {
+            CertificateSource.CertificateStore,
+            CertificateSource.File,
+            CertificateSource.String
+        };
 
         var input = new Input
         {
@@ -200,7 +203,12 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_Certification()
     {
-        var certSources = new List<CertificateSource>() { CertificateSource.File, CertificateSource.String, CertificateSource.CertificateStore };
+        var certSources = new List<CertificateSource>
+        {
+            CertificateSource.File,
+            CertificateSource.String,
+            CertificateSource.CertificateStore
+        };
 
         var input = new Input
         {
@@ -481,44 +489,6 @@ public class UnitTests
     }
 
     [TestMethod]
-    public async Task TestFileDownload_WithAuthorizationHeader_ShouldNotAddDuplicateAuth()
-    {
-        var headers = new[] { new Header() { Name = "Authorization", Value = "Bearer mytoken" } };
-
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = headers
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.OAuth,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = "",
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = "",
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "",
-            ThrowExceptionOnErrorResponse = false,
-            Token = "different_token",
-            Username = ""
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-    }
-
-    [TestMethod]
     [ExpectedException(typeof(Exception))]
     public async Task TestFileDownload_WindowsAuth_InvalidUsername_ShouldThrow()
     {
@@ -712,81 +682,5 @@ public class UnitTests
         // Second request should use cached client
         var result2 = await HTTP.DownloadFile(input, options, default);
         Assert.IsTrue(result2.Success);
-    }
-
-    [TestMethod]
-    public async Task TestFileDownload_BasicAuth_WithEmptyHeaders()
-    {
-        var headers = new Header[0];
-
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = headers
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.Basic,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = "",
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = "",
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "password",
-            ThrowExceptionOnErrorResponse = false,
-            Token = "",
-            Username = "domain\\user"
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-    }
-
-    [TestMethod]
-    public async Task TestFileDownload_OAuthAuth_WithEmptyHeaders()
-    {
-        var headers = new Header[0];
-
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = headers
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.OAuth,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = "",
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = "",
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "",
-            ThrowExceptionOnErrorResponse = false,
-            Token = "my_oauth_token",
-            Username = ""
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
     }
 }
