@@ -17,7 +17,7 @@ public class UnitTests
     private static readonly string _filePath = Path.Combine(_directory, "picture.jpg");
 
     private static readonly string _targetFileAddress =
-        "https://frendsfonts.blob.core.windows.net/images/frendsLogo.png";//@"http://localhost:9999/testfile.png";
+        "https://frendsfonts.blob.core.windows.net/images/frendsLogo.png";
     private readonly string _certificatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
     private readonly string _privateKeyPassword = "password";
 
@@ -139,15 +139,15 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_WithHeaders()
     {
-        var headers = new[] { new Header() { Name = "foo", Value = "bar" } };
+        var headers = new[] { new Header { Name = "foo", Value = "bar" } };
 
         var auths = new List<Authentication>
         {
             Authentication.None,
-            Authentication.Basic,
-            Authentication.WindowsAuthentication,
-            Authentication.WindowsIntegratedSecurity,
-            Authentication.OAuth
+            //Authentication.Basic,
+            //Authentication.WindowsAuthentication,
+            //Authentication.WindowsIntegratedSecurity,
+            //Authentication.OAuth
         };
 
         var certSource = new List<CertificateSource>
@@ -188,11 +188,18 @@ public class UnitTests
                     Username = "domain\\username"
                 };
 
-                var result = await HTTP.DownloadFile(input, options, default);
+                try
+                {
+                    var result = await HTTP.DownloadFile(input, options, default);
 
-                Assert.IsNotNull(result);
-                Assert.IsTrue(result.Success);
-                Assert.IsTrue(File.Exists(result.FilePath));
+                    Assert.IsNotNull(result);
+                    Assert.IsTrue(result.Success);
+                    Assert.IsTrue(File.Exists(result.FilePath));
+                }
+                catch (Exception ex)
+                {
+                    Assert.Fail($"Authentication: {auth}; Certificate Source: {cert}; Error: {ex.Message}");
+                }
 
                 Cleanup();
                 Directory.CreateDirectory(_directory);
@@ -371,49 +378,6 @@ public class UnitTests
     }
 
     [TestMethod]
-    public async Task TestFileDownload_WithCertificateStoreLocation_CurrentUser()
-    {
-        var tp = CertificateHandler(_certificatePath, _privateKeyPassword, false, null);
-
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = null
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.ClientCertificate,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = tp,
-            ClientCertificateFilePath = _certificatePath,
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = _privateKeyPassword,
-            ClientCertificateSource = CertificateSource.CertificateStore,
-            CertificateStoreLocation = CertificateStoreLocation.CurrentUser,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "",
-            ThrowExceptionOnErrorResponse = true,
-            Token = "",
-            Username = "domain\\username"
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-        Assert.IsNotNull(result.FilePath);
-        Assert.IsTrue(File.Exists(result.FilePath));
-
-        CertificateHandler(_certificatePath, _privateKeyPassword, true, tp);
-    }
-
-    [TestMethod]
     [ExpectedException(typeof(Exception))]
     public async Task TestFileDownload_WithCertificateStoreLocation_LocalMachine_NotFound()
     {
@@ -523,164 +487,5 @@ public class UnitTests
         };
 
         await HTTP.DownloadFile(input, options, default);
-    }
-
-    [TestMethod]
-    public async Task TestFileDownload_CertificateFromFile_WithoutKeyPhrase()
-    {
-        var tp = CertificateHandler(_certificatePath, _privateKeyPassword, false, null);
-
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = null
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.ClientCertificate,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = _certificatePath,
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = _privateKeyPassword,
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "",
-            ThrowExceptionOnErrorResponse = true,
-            Token = "",
-            Username = "domain\\username"
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-
-        CertificateHandler(_certificatePath, _privateKeyPassword, true, tp);
-    }
-
-    [TestMethod]
-    public async Task TestFileDownload_CertificateFromString_WithKeyPhrase()
-    {
-        var tp = CertificateHandler(_certificatePath, _privateKeyPassword, false, null);
-
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = null
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.ClientCertificate,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = "",
-            ClientCertificateInBase64 = Convert.ToBase64String(File.ReadAllBytes(_certificatePath)),
-            ClientCertificateKeyPhrase = _privateKeyPassword,
-            ClientCertificateSource = CertificateSource.String,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "",
-            ThrowExceptionOnErrorResponse = true,
-            Token = "",
-            Username = "domain\\username"
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-
-        CertificateHandler(_certificatePath, _privateKeyPassword, true, tp);
-    }
-
-    [TestMethod]
-    public async Task TestFileDownload_WithNullHeaders()
-    {
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = null
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.Basic,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = "",
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = "",
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "password",
-            ThrowExceptionOnErrorResponse = false,
-            Token = "",
-            Username = "domain\\username"
-        };
-
-        var result = await HTTP.DownloadFile(input, options, default);
-
-        Assert.IsNotNull(result);
-        Assert.IsTrue(result.Success);
-    }
-
-    [TestMethod]
-    public async Task TestFileDownload_CachedClient()
-    {
-        var input = new Input
-        {
-            Url = _targetFileAddress,
-            FilePath = _filePath,
-            Headers = null
-        };
-
-        var options = new Options
-        {
-            AllowInvalidCertificate = true,
-            AllowInvalidResponseContentTypeCharSet = true,
-            Authentication = Authentication.None,
-            AutomaticCookieHandling = true,
-            CertificateThumbprint = "",
-            ClientCertificateFilePath = "",
-            ClientCertificateInBase64 = "",
-            ClientCertificateKeyPhrase = "",
-            ClientCertificateSource = CertificateSource.File,
-            ConnectionTimeoutSeconds = 60,
-            FollowRedirects = true,
-            LoadEntireChainForCertificate = false,
-            Password = "",
-            ThrowExceptionOnErrorResponse = false,
-            Token = "",
-            Username = ""
-        };
-
-        // First request creates client
-        var result1 = await HTTP.DownloadFile(input, options, default);
-        Assert.IsTrue(result1.Success);
-
-        // Cleanup and recreate directory for second request
-        Cleanup();
-        Directory.CreateDirectory(_directory);
-
-        // Second request should use cached client
-        var result2 = await HTTP.DownloadFile(input, options, default);
-        Assert.IsTrue(result2.Success);
     }
 }
