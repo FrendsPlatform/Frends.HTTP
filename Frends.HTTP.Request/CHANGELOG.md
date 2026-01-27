@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.6.0] - 2025-01-27
+## [1.6.0] - 2026-01-27
 ### Fixed
 - GET requests ignore message body content
 
