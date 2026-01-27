@@ -384,4 +384,25 @@ public class UnitTests
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.IsTrue(result.Body.Contains("foo åäö"));
     }
+
+    [TestMethod]
+    public async Task RequestTest_GetMethod_ShouldSendEmptyContent()
+    {
+        const string expectedReturn = "OK";
+
+        _mockHttpMessageHandler.When($"{BasePath}/endpoint")
+            .WithContent(string.Empty)
+            .Respond("text/plain", expectedReturn);
+
+        var input = GetInputParams(
+            url: "http://localhost:9191/endpoint",
+            method: Method.Method.GET,
+            message: "This should not be sent"
+        );
+
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        var result = await HTTP.Request(input, options, CancellationToken.None);
+
+        ClassicAssert.AreEqual(expectedReturn, result.Body);
+    }
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2026-01-27
+### Fixed
+- GET requests ignore message body content
+
 ## [1.5.0] - 2025-10-03
 ### Changed
 - Changed default return format from String to JToken
