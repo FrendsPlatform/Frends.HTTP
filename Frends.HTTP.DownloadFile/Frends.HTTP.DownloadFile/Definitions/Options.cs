@@ -30,7 +30,7 @@ public class Options
     public string Password { get; set; }
 
     /// <summary>
-    /// Bearer token to be used for request. 
+    /// Bearer token to be used for request.
     /// Token will be added as Authorization header.
     /// </summary>
     /// <example>Token123</example>
@@ -88,10 +88,10 @@ public class Options
     /// <example>CurrentUser</example>
     [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     [DefaultValue(CertificateStoreLocation.CurrentUser)]
-    public CertificateStoreLocation CertificateStoreLocation { get; set; }
+    public CertificateStoreLocation CertificateStoreLocation { get; set; } = CertificateStoreLocation.CurrentUser;
 
     /// <summary>
-    /// Should the entire certificate chain be loaded from the certificate store and included in the request. Only valid when using Certificate Store as the Certificate Source 
+    /// Should the entire certificate chain be loaded from the certificate store and included in the request. Only valid when using Certificate Store as the Certificate Source
     /// </summary>
     /// <example>true</example>
     [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
@@ -142,6 +142,5 @@ public class Options
     /// </summary>
     /// <example>false</example>
     [DefaultValue(false)]
-    public bool Overwrite { get; set; } = false;
-
+    public bool Overwrite { get; set; }
 }
