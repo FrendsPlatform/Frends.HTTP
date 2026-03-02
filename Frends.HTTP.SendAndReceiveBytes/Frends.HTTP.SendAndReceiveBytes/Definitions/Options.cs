@@ -90,10 +90,10 @@ public class Options
     /// <example>CurrentUser</example>
     [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
     [DefaultValue(CertificateStoreLocation.CurrentUser)]
-    public CertificateStoreLocation CertificateStoreLocation { get; set; }
+    public CertificateStoreLocation CertificateStoreLocation { get; set; } = CertificateStoreLocation.CurrentUser;
 
     /// <summary>
-    /// Should the entire certificate chain be loaded from the certificate store and included in the request. Only valid when using Certificate Store as the Certificate Source 
+    /// Should the entire certificate chain be loaded from the certificate store and included in the request. Only valid when using Certificate Store as the Certificate Source
     /// </summary>
     /// <example>true</example>
     [UIHint(nameof(Authentication), "", Authentication.ClientCertificate)]
