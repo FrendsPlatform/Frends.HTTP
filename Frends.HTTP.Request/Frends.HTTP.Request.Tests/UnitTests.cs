@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
 namespace Frends.HTTP.Request.Tests;
@@ -31,7 +32,8 @@ public class UnitTests
         HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
     }
 
-    private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = BasePath, string message = "",
+    private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = BasePath,
+        string message = "",
         params Header[] headers)
     {
         return new Input
@@ -49,15 +51,22 @@ public class UnitTests
         const string expectedReturn = @"'FooBar'";
         var dict = new Dictionary<string, string>()
         {
-            {"foo", "bar"},
-            {"bar", "foo"}
+            {
+                "foo", "bar"
+            },
+            {
+                "bar", "foo"
+            }
         };
 
         _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithQueryString(dict)
             .Respond("application/json", expectedReturn);
 
         var input = GetInputParams(url: "http://localhost:9191/endpoint?foo=bar&bar=foo");
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
@@ -71,13 +80,23 @@ public class UnitTests
         _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithHeaders("Content-Type", "text/plain")
             .Respond("text/plain", expectedReturn);
 
-        var contentType = new Header { Name = "Content-Type", Value = "text/plain" };
+        var contentType = new Header
+        {
+            Name = "Content-Type",
+            Value = "text/plain"
+        };
         var input = GetInputParams(
             url: "http://localhost:9191/endpoint",
             method: Method.Method.GET,
-            headers: new Header[1] { contentType }
+            headers: new Header[1]
+            {
+                contentType
+            }
         );
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
         NUnit.Framework.Legacy.StringAssert.Contains(result.Body, "OK");
@@ -93,7 +112,11 @@ public class UnitTests
             Headers = new Header[0],
             Message = ""
         };
-        var options = new Options { ConnectionTimeoutSeconds = 60, ThrowExceptionOnErrorResponse = true };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            ThrowExceptionOnErrorResponse = true
+        };
 
         var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
@@ -116,7 +139,11 @@ public class UnitTests
             Headers = new Header[0],
             Message = ""
         };
-        var options = new Options { ConnectionTimeoutSeconds = 60, ThrowExceptionOnErrorResponse = true };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            ThrowExceptionOnErrorResponse = true
+        };
 
         var ex = Assert.ThrowsAsync<WebException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
@@ -140,7 +167,11 @@ public class UnitTests
             Headers = new Header[0],
             Message = ""
         };
-        var options = new Options { ConnectionTimeoutSeconds = 60, ThrowExceptionOnErrorResponse = false };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            ThrowExceptionOnErrorResponse = false
+        };
 
         var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
 
@@ -217,7 +248,14 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new[] { new Header() { Name = "Authorization", Value = "Basic fooToken" } },
+            Headers = new[]
+            {
+                new Header()
+                {
+                    Name = "Authorization",
+                    Value = "Basic fooToken"
+                }
+            },
             Message = ""
         };
         var options = new Options
@@ -274,9 +312,19 @@ public class UnitTests
 
 
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
+        {
+            Method = Method.Method.GET,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[0],
+            Message = "",
+            ResultMethod = ReturnFormat.JToken
+        };
         var options = new Options
-        { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
+        {
+            ConnectionTimeoutSeconds = 60,
+            Authentication = Authentication.OAuth,
+            Token = "fooToken"
+        };
 
         _mockHttpMessageHandler.When(input.Url)
             .Respond("application/json", output);
@@ -290,9 +338,19 @@ public class UnitTests
     public async Task RestRequestShouldNotThrowIfReturnIsEmpty()
     {
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
+        {
+            Method = Method.Method.GET,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[0],
+            Message = "",
+            ResultMethod = ReturnFormat.JToken
+        };
         var options = new Options
-        { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
+        {
+            ConnectionTimeoutSeconds = 60,
+            Authentication = Authentication.OAuth,
+            Token = "fooToken"
+        };
 
         _mockHttpMessageHandler.When(input.Url)
             .Respond("application/json", String.Empty);
@@ -306,9 +364,19 @@ public class UnitTests
     public void RestRequestShouldThrowIfReturnIsNotValidJson()
     {
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.JToken };
+        {
+            Method = Method.Method.GET,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[0],
+            Message = "",
+            ResultMethod = ReturnFormat.JToken
+        };
         var options = new Options
-        { ConnectionTimeoutSeconds = 60, Authentication = Authentication.OAuth, Token = "fooToken" };
+        {
+            ConnectionTimeoutSeconds = 60,
+            Authentication = Authentication.OAuth,
+            Token = "fooToken"
+        };
 
         _mockHttpMessageHandler.When(input.Url)
             .Respond("application/json", "<fail>failbar<fail>");
@@ -324,8 +392,17 @@ public class UnitTests
         const string expectedReturn = "<foo>BAR</foo>";
 
         var input = new Input
-        { Method = Method.Method.GET, Url = "http://localhost:9191/endpoint", Headers = new Header[0], Message = "", ResultMethod = ReturnFormat.String };
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        {
+            Method = Method.Method.GET,
+            Url = "http://localhost:9191/endpoint",
+            Headers = new Header[0],
+            Message = "",
+            ResultMethod = ReturnFormat.String
+        };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
 
         _mockHttpMessageHandler.When(input.Url)
             .Respond("text/plain", expectedReturn);
@@ -343,11 +420,16 @@ public class UnitTests
         {
             Method = Method.Method.PATCH,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[] { },
+            Headers = new Header[]
+            {
+            },
             Message = message,
             ResultMethod = ReturnFormat.String
         };
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
 
         _mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
             .Respond("text/plain", "foo åäö");
@@ -365,18 +447,29 @@ public class UnitTests
         var requestMessage = "åäö!";
         var expectedContentType = $"text/plain; charset={codePageName}";
 
-        var contentType = new Header { Name = "cONTENT-tYpE", Value = expectedContentType };
+        var contentType = new Header
+        {
+            Name = "cONTENT-tYpE",
+            Value = expectedContentType
+        };
         var input = new Input
         {
             Method = Method.Method.POST,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[1] { contentType },
+            Headers = new Header[1]
+            {
+                contentType
+            },
             Message = requestMessage,
             ResultMethod = ReturnFormat.String
         };
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
 
-        _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType).WithContent(requestMessage)
+        _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType)
+            .WithContent(requestMessage)
             .Respond("text/plain", "foo åäö");
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
@@ -400,9 +493,30 @@ public class UnitTests
             message: "This should not be sent"
         );
 
-        var options = new Options { ConnectionTimeoutSeconds = 60 };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
         ClassicAssert.AreEqual(expectedReturn, result.Body);
+    }
+
+    [TestCase(CertificateStoreLocation.CurrentUser, "current user")]
+    [TestCase(CertificateStoreLocation.LocalMachine, "local machine")]
+    public void CorrectStoreSearched(CertificateStoreLocation storeLocation, string storeLocationText)
+    {
+        var handler = new HttpClientHandler();
+        var options = new Options
+        {
+            Authentication = Authentication.ClientCertificate,
+            ClientCertificateSource = CertificateSource.CertificateStore,
+            CertificateStoreLocation = storeLocation,
+            CertificateThumbprint = "InvalidThumbprint",
+        };
+        var ex = Assert.Throws<FileNotFoundException>(() => handler.SetHandlerSettingsBasedOnOptions(options));
+        Assert.That(ex, Is.Not.Null);
+        Assert.That(ex.Message.Contains(
+            $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store."));
     }
 }

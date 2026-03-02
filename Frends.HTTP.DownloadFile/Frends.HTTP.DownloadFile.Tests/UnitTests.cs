@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -18,7 +19,10 @@ public class UnitTests
 
     private static readonly string _targetFileAddress =
         "https://frendsfonts.blob.core.windows.net/images/frendsLogo.png";
-    private readonly string _certificatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
+
+    private readonly string _certificatePath =
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
+
     private readonly string _privateKeyPassword = "password";
 
     [TestInitialize]
@@ -38,9 +42,21 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_WithoutHeaders_AllTrue()
     {
-        var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
+        var auths = new List<Authentication>()
+        {
+            Authentication.None,
+            Authentication.Basic,
+            Authentication.WindowsAuthentication,
+            Authentication.WindowsIntegratedSecurity,
+            Authentication.OAuth
+        };
 
-        var certSource = new List<CertificateSource>() { CertificateSource.CertificateStore, CertificateSource.File, CertificateSource.String };
+        var certSource = new List<CertificateSource>()
+        {
+            CertificateSource.CertificateStore,
+            CertificateSource.File,
+            CertificateSource.String
+        };
 
         var input = new Input
         {
@@ -89,9 +105,21 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_WithoutHeaders_AllFalse()
     {
-        var auths = new List<Authentication>() { Authentication.None, Authentication.Basic, Authentication.WindowsAuthentication, Authentication.WindowsIntegratedSecurity, Authentication.OAuth };
+        var auths = new List<Authentication>()
+        {
+            Authentication.None,
+            Authentication.Basic,
+            Authentication.WindowsAuthentication,
+            Authentication.WindowsIntegratedSecurity,
+            Authentication.OAuth
+        };
 
-        var certSource = new List<CertificateSource>() { CertificateSource.CertificateStore, CertificateSource.File, CertificateSource.String };
+        var certSource = new List<CertificateSource>()
+        {
+            CertificateSource.CertificateStore,
+            CertificateSource.File,
+            CertificateSource.String
+        };
 
         var input = new Input
         {
@@ -139,7 +167,14 @@ public class UnitTests
     [TestMethod]
     public async Task TestFileDownload_WithHeaders()
     {
-        var headers = new[] { new Header { Name = "foo", Value = "bar" } };
+        var headers = new[]
+        {
+            new Header
+            {
+                Name = "foo",
+                Value = "bar"
+            }
+        };
 
         var auths = new List<Authentication>
         {
@@ -236,7 +271,8 @@ public class UnitTests
                 AutomaticCookieHandling = true,
                 CertificateThumbprint = tp,
                 ClientCertificateFilePath = _certificatePath,
-                ClientCertificateInBase64 = cert is CertificateSource.String ? Convert.ToBase64String(File.ReadAllBytes(_certificatePath)) : "",
+                ClientCertificateInBase64 =
+                    cert is CertificateSource.String ? Convert.ToBase64String(File.ReadAllBytes(_certificatePath)) : "",
                 ClientCertificateKeyPhrase = _privateKeyPassword,
                 ClientCertificateSource = cert,
                 ConnectionTimeoutSeconds = 60,
@@ -259,7 +295,6 @@ public class UnitTests
             Directory.CreateDirectory(_directory);
             CertificateHandler(_certificatePath, _privateKeyPassword, true, tp);
         }
-
     }
 
     private static string CertificateHandler(string path, string password, bool cleanUp, string thumbPrint)
@@ -290,6 +325,7 @@ public class UnitTests
                 }
 
                 File.WriteAllBytes(path, certData);
+
                 return cert.Thumbprint;
             }
             else
@@ -297,7 +333,8 @@ public class UnitTests
                 using (X509Store store = new(StoreName.My, StoreLocation.CurrentUser))
                 {
                     store.Open(OpenFlags.ReadWrite | OpenFlags.IncludeArchived);
-                    X509Certificate2Collection col = store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
+                    X509Certificate2Collection col =
+                        store.Certificates.Find(X509FindType.FindByThumbprint, thumbPrint, false);
 
                     foreach (var cert in col)
                         store.Remove(cert);
@@ -487,5 +524,26 @@ public class UnitTests
         };
 
         await HTTP.DownloadFile(input, options, default);
+    }
+
+    [DataTestMethod]
+    [DataRow(CertificateStoreLocation.CurrentUser, "current user")]
+    [DataRow(CertificateStoreLocation.LocalMachine, "local machine")]
+    public void CorrectStoreSearched(CertificateStoreLocation storeLocation, string storeLocationText)
+    {
+        var handler = new HttpClientHandler();
+        var options = new Options
+        {
+            Authentication = Authentication.ClientCertificate,
+            ClientCertificateSource = CertificateSource.CertificateStore,
+            CertificateStoreLocation = storeLocation,
+            CertificateThumbprint = "InvalidThumbprint",
+        };
+        var ex = Assert.ThrowsExactly<FileNotFoundException>(() =>
+            handler.SetHandlerSettingsBasedOnOptions(options));
+
+        Assert.IsNotNull(ex);
+        StringAssert.Contains(ex.Message,
+            $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store.");
     }
 }
