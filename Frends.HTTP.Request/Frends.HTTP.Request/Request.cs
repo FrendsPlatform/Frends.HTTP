@@ -130,6 +130,13 @@ public class HTTP
 
     private static HttpContent GetContent(Input input, IDictionary<string, string> headers)
     {
+        var methodsWithBody = new[] { Method.POST, Method.PUT, Method.PATCH, Method.DELETE };
+
+        if (!methodsWithBody.Contains(input.Method))
+        {
+            return new StringContent(string.Empty);
+        }
+
         if (headers.TryGetValue("content-type", out string contentTypeValue))
         {
             var contentTypeIsSetAndValid = MediaTypeWithQualityHeaderValue.TryParse(contentTypeValue, out var validContentType);
