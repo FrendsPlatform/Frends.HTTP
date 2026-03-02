@@ -1,8 +1,12 @@
 # Changelog
 
-## [1.6.0] - 2025-11-18
+## [1.7.0] - 2026-03-26
 ### Added
 - Added CertificateStoreLocation option to allow selection between CurrentUser and LocalMachine certificate stores when using certificate authentication.
+
+## [1.6.0] - 2026-01-27
+### Fixed
+- GET requests ignore message body content
 
 ## [1.5.0] - 2025-10-03
 ### Changed
