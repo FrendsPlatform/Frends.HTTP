@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.7.0] - 2026-03-26
+## [1.7.0] - 2026-03-03
 ### Added
 - Added CertificateStoreLocation option to allow selection between CurrentUser and LocalMachine certificate stores when using certificate authentication.
 
