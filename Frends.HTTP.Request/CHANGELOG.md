@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.8.0] - 2026-03-07
+### Fixed
+- Improve handling disposable objects to avoid problems with timeouts related to HttpClient.
+
 ## [1.7.0] - 2026-03-03
 ### Added
 - Added CertificateStoreLocation option to allow selection between CurrentUser and LocalMachine certificate stores when using certificate authentication.

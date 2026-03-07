@@ -13,7 +13,7 @@ namespace Frends.HTTP.Request;
 [ExcludeFromCodeCoverage]
 internal static class Extensions
 {
-    internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options)
+    internal static void SetHandlerSettingsBasedOnOptions(this HttpClientHandler handler, Options options, ref X509Certificate2[] certificates)
     {
         switch (options.Authentication)
         {
@@ -35,7 +35,7 @@ internal static class Extensions
 
                 break;
             case Authentication.ClientCertificate:
-                handler.ClientCertificates.AddRange(GetCertificates(options));
+                handler.ClientCertificates.AddRange(GetCertificates(options, ref certificates));
 
                 break;
         }
@@ -57,10 +57,8 @@ internal static class Extensions
         httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
     }
 
-    private static X509Certificate[] GetCertificates(Options options)
+    private static X509Certificate[] GetCertificates(Options options, ref X509Certificate2[] certificates)
     {
-        X509Certificate2[] certificates;
-
         switch (options.ClientCertificateSource)
         {
             case CertificateSource.CertificateStore:
@@ -125,40 +123,39 @@ internal static class Extensions
             ? "current user"
             : "local machine";
 
-        using (var store = new X509Store(StoreName.My, location))
+        using var store = new X509Store(StoreName.My, location);
+
+        store.Open(OpenFlags.ReadOnly);
+        var signingCert = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
+
+        if (signingCert.Count == 0)
         {
-            store.Open(OpenFlags.ReadOnly);
-            var signingCert = store.Certificates.Find(X509FindType.FindByThumbprint, thumbprint, false);
-
-            if (signingCert.Count == 0)
-            {
-                throw new FileNotFoundException(
-                    $"Certificate with thumbprint: '{thumbprint}' not found in {locationText} cert store.");
-            }
-
-            var certificate = signingCert[0];
-
-
-            if (!loadEntireChain)
-            {
-                return new[]
-                {
-                    certificate
-                };
-            }
-
-            using var chain = new X509Chain();
-            chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-            chain.Build(certificate);
-
-            // include the whole chain
-            var certificates = chain
-                .ChainElements.Cast<X509ChainElement>()
-                .Select(c => c.Certificate)
-                .OrderByDescending(c => c.HasPrivateKey)
-                .ToArray();
-
-            return certificates;
+            throw new FileNotFoundException(
+                $"Certificate with thumbprint: '{thumbprint}' not found in {locationText} cert store.");
         }
+
+        var certificate = signingCert[0];
+
+
+        if (!loadEntireChain)
+        {
+            return new[]
+            {
+                certificate
+            };
+        }
+
+        using var chain = new X509Chain();
+        chain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+        chain.Build(certificate);
+
+        // include the whole chain
+        var certificates = chain
+            .ChainElements
+            .Select(c => c.Certificate)
+            .OrderByDescending(c => c.HasPrivateKey)
+            .ToArray();
+
+        return certificates;
     }
 }
