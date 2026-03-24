@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -518,5 +519,51 @@ public class UnitTests
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message.Contains(
             $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store."));
+    }
+
+    [TestMethod]
+    public async Task RequestShouldHandleConcurrentCallsWithSingleHttpClient()
+    {
+        const string expectedReturn = @"'OK'";
+        const int concurrentRequests = 50;
+
+        _mockHttpMessageHandler.When($"{BasePath}/endpoint")
+            .Respond("application/json", expectedReturn);
+
+        var countingFactory = new CountingMockHttpClientFactory(_mockHttpMessageHandler);
+        HTTP.ClientFactory = countingFactory;
+
+        var input = GetInputParams(url: $"{BasePath}/endpoint");
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        var tasks = Enumerable.Range(0, concurrentRequests)
+            .Select(_ => HTTP.Request(input, options, CancellationToken.None));
+
+        var results = await Task.WhenAll(tasks);
+
+        ClassicAssert.AreEqual(concurrentRequests, results.Length);
+        foreach (var result in results)
+            ClassicAssert.IsTrue(result.Body.Contains("OK"));
+
+        ClassicAssert.AreEqual(1, countingFactory.CreateCount, "HttpClient should have been created exactly once despite concurrent requests.");
+    }
+}
+
+internal class CountingMockHttpClientFactory : IHttpClientFactory
+{
+    private readonly MockHttpMessageHandler _handler;
+    private int _createCount;
+
+    public CountingMockHttpClientFactory(MockHttpMessageHandler handler)
+    {
+        _handler = handler;
+    }
+
+    public int CreateCount => _createCount;
+
+    public HttpClient CreateClient(Options options)
+    {
+        Interlocked.Increment(ref _createCount);
+        return _handler.ToHttpClient();
     }
 }

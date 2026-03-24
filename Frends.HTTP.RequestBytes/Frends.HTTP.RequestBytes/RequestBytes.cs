@@ -24,6 +24,7 @@ public class HTTP
     internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
     internal static readonly ObjectCache ClientCache = MemoryCache.Default;
     private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
+    private static readonly object _clientLock = new object();
 
     internal static void ClearClientCache()
     {
@@ -121,17 +122,21 @@ public class HTTP
     {
         var cacheKey = GetHttpClientCacheKey(options);
 
-        if (ClientCache.Get(cacheKey) is HttpClient httpClient)
+        if (ClientCache.Get(cacheKey) is HttpClient cachedClient)
+            return cachedClient;
+
+        lock (_clientLock)
         {
+            if (ClientCache.Get(cacheKey) is HttpClient lockedCachedClient)
+                return lockedCachedClient;
+
+            var httpClient = ClientFactory.CreateClient(options);
+            httpClient.SetDefaultRequestHeadersBasedOnOptions(options);
+
+            ClientCache.Add(cacheKey, httpClient, _cachePolicy);
+
             return httpClient;
         }
-
-        httpClient = ClientFactory.CreateClient(options);
-        httpClient.SetDefaultRequestHeadersBasedOnOptions(options);
-
-        ClientCache.Add(cacheKey, httpClient, _cachePolicy);
-
-        return httpClient;
     }
 
     private static string GetHttpClientCacheKey(Options options)
