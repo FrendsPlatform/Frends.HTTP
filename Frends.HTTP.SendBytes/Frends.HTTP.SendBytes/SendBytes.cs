@@ -24,7 +24,7 @@ public class HTTP
     internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
     internal static readonly ObjectCache ClientCache = MemoryCache.Default;
     private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
-    private static readonly object _clientLock = new object();
+    private static readonly SemaphoreSlim _clientLock = new SemaphoreSlim(1, 1);
 
     internal static void ClearClientCache()
     {
@@ -106,7 +106,8 @@ public class HTTP
         if (ClientCache.Get(cacheKey) is HttpClient cachedClient)
             return cachedClient;
 
-        lock (_clientLock)
+        _clientLock.Wait();
+        try
         {
             if (ClientCache.Get(cacheKey) is HttpClient lockedCachedClient)
                 return lockedCachedClient;
@@ -117,6 +118,10 @@ public class HTTP
             ClientCache.Add(cacheKey, httpClient, _cachePolicy);
 
             return httpClient;
+        }
+        finally
+        {
+            _clientLock.Release();
         }
     }
 
