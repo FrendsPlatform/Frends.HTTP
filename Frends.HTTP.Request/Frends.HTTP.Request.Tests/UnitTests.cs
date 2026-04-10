@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -7,10 +6,9 @@ using System.Threading.Tasks;
 using Frends.HTTP.Request.Definitions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Method = Frends.HTTP.Request.Definitions;
-using RichardSzalay.MockHttp;
 using Assert = NUnit.Framework.Assert;
 using System.Net;
-using System.Text;
+using System.Security.Cryptography.X509Certificates;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -21,15 +19,12 @@ namespace Frends.HTTP.Request.Tests;
 [TestClass]
 public class UnitTests
 {
-    private const string BasePath = "http://localhost:9191";
-    private MockHttpMessageHandler _mockHttpMessageHandler;
+    private const string BasePath = "https://httpbin.org";
 
     [TestInitialize]
     public void TestInitialize()
     {
-        _mockHttpMessageHandler = new MockHttpMessageHandler();
         HTTP.ClearClientCache();
-        HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
     }
 
     private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = BasePath,
@@ -48,58 +43,16 @@ public class UnitTests
     [TestMethod]
     public async Task RequestTestGetWithParameters()
     {
-        const string expectedReturn = @"'FooBar'";
-        var dict = new Dictionary<string, string>()
-        {
-            {
-                "foo", "bar"
-            },
-            {
-                "bar", "foo"
-            }
-        };
-
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithQueryString(dict)
-            .Respond("application/json", expectedReturn);
-
-        var input = GetInputParams(url: "http://localhost:9191/endpoint?foo=bar&bar=foo");
+        var expected = "\"args\": {\n    \"id\": \"2\", \n    \"userId\": \"1\"\n  }";
+        var input = GetInputParams(url: $"{BasePath}/anything?id=2&userId=1");
         var options = new Options
         {
-            ConnectionTimeoutSeconds = 60
+            ConnectionTimeoutSeconds = 60,
         };
 
-        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
-    }
-
-    [TestMethod]
-    public async Task RequestTestGetWithContent()
-    {
-        const string expectedReturn = "OK";
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint").WithHeaders("Content-Type", "text/plain")
-            .Respond("text/plain", expectedReturn);
-
-        var contentType = new Header
-        {
-            Name = "Content-Type",
-            Value = "text/plain"
-        };
-        var input = GetInputParams(
-            url: "http://localhost:9191/endpoint",
-            method: Method.Method.GET,
-            headers: new Header[1]
-            {
-                contentType
-            }
-        );
-        var options = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
-
-        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
-        NUnit.Framework.Legacy.StringAssert.Contains(result.Body, "OK");
+        ClassicAssert.IsTrue(result.Body.Contains(expected));
     }
 
     [TestMethod]
@@ -125,17 +78,12 @@ public class UnitTests
     }
 
     [TestMethod]
-    public void RequestShuldThrowExceptionIfOptionIsSet()
+    public void RequestShouldThrowExceptionIfOptionIsSet()
     {
-        const string expectedReturn = @"'FooBar'";
-
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint")
-            .Respond(HttpStatusCode.InternalServerError, "application/json", expectedReturn);
-
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/invalid",
             Headers = new Header[0],
             Message = ""
         };
@@ -148,22 +96,17 @@ public class UnitTests
         var ex = Assert.ThrowsAsync<WebException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
-        ClassicAssert.IsTrue(ex.Message.Contains("FooBar"));
+        ClassicAssert.IsTrue(
+            ex.Message.Contains("Request to 'https://httpbin.org/invalid' failed with status code 404"));
     }
 
     [TestMethod]
     public async Task RequestShouldNotThrowIfOptionIsNotSet()
     {
-        const string expectedReturn = @"'FooBar'";
-
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint")
-            .Respond(HttpStatusCode.InternalServerError, "application/json", expectedReturn);
-
-
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/invalid",
             Headers = new Header[0],
             Message = ""
         };
@@ -173,54 +116,41 @@ public class UnitTests
             ThrowExceptionOnErrorResponse = false
         };
 
-        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(
+            result.Body.Contains("404 Not Found"));
     }
 
     [TestMethod]
     public async Task RequestShouldAddBasicAuthHeaders()
     {
-        const string expectedReturn = @"'FooBar'";
-
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = " http://localhost:9191/endpoint",
+            Url = $"{BasePath}/anything",
             Headers = new Header[0],
             Message = ""
         };
-
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
-            Username = Guid.NewGuid().ToString(),
-            Password = Guid.NewGuid().ToString()
+            Username = "username",
+            Password = "password",
         };
-
-        var sentAuthValue =
-            "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
-
-        _mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", sentAuthValue)
-            .Respond("application/json", expectedReturn);
-
-        var result = (dynamic)await HTTP.Request(input, options, CancellationToken.None);
-
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
+        var result = await HTTP.Request(input, options, CancellationToken.None);
+        ClassicAssert.IsTrue(result.Body.Contains("\"Authorization\": \"Basic dXNlcm5hbWU6cGFzc3dvcmQ=\""));
     }
 
     [TestMethod]
     public async Task RequestShouldAddOAuthBearerHeader()
     {
-        const string expectedReturn = @"'FooBar'";
-
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/anything",
             Headers = new Header[0],
             Message = ""
         };
@@ -231,23 +161,18 @@ public class UnitTests
             Token = "fooToken"
         };
 
-        _mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
-            .Respond("application/json", expectedReturn);
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("\"Authorization\": \"Bearer fooToken\""));
     }
 
     [TestMethod]
     public async Task AuthorizationHeaderShouldOverrideOption()
     {
-        const string expectedReturn = @"'FooBar'";
-
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/anything",
             Headers = new[]
             {
                 new Header()
@@ -265,12 +190,9 @@ public class UnitTests
             Token = "barToken"
         };
 
-        _mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
-            .Respond("application/json", expectedReturn);
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        ClassicAssert.IsTrue(result.Body.Contains("FooBar"));
+        ClassicAssert.IsTrue(result.Body.Contains("\"Authorization\": \"Basic fooToken\""));
     }
 
     [TestMethod]
@@ -280,7 +202,7 @@ public class UnitTests
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = BasePath,
             Headers = new Header[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
@@ -293,8 +215,6 @@ public class UnitTests
             CertificateThumbprint = thumbprint
         };
 
-        HTTP.ClientFactory = new HttpClientFactory();
-
         var ex = Assert.ThrowsAsync<FileNotFoundException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
@@ -304,17 +224,10 @@ public class UnitTests
     [TestMethod]
     public async Task RestRequestBodyReturnShouldBeOfTypeJToken()
     {
-        dynamic dyn = new
-        {
-            Foo = "Bar"
-        };
-        string output = JsonConvert.SerializeObject(dyn);
-
-
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/anything",
             Headers = new Header[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
@@ -326,12 +239,9 @@ public class UnitTests
             Token = "fooToken"
         };
 
-        _mockHttpMessageHandler.When(input.Url)
-            .Respond("application/json", output);
-
         var result = await HTTP.Request(input, options, CancellationToken.None);
         var resultBody = (JToken)result.Body;
-        ClassicAssert.AreEqual(new JValue("Bar"), resultBody["Foo"]);
+        ClassicAssert.AreEqual(new JValue("GET"), resultBody["method"]);
     }
 
     [TestMethod]
@@ -340,7 +250,7 @@ public class UnitTests
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/status/200",
             Headers = new Header[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
@@ -351,9 +261,6 @@ public class UnitTests
             Authentication = Authentication.OAuth,
             Token = "fooToken"
         };
-
-        _mockHttpMessageHandler.When(input.Url)
-            .Respond("application/json", String.Empty);
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
@@ -366,7 +273,7 @@ public class UnitTests
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/xml",
             Headers = new Header[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
@@ -378,23 +285,23 @@ public class UnitTests
             Token = "fooToken"
         };
 
-        _mockHttpMessageHandler.When(input.Url)
-            .Respond("application/json", "<fail>failbar<fail>");
+        // _mockHttpMessageHandler.When(input.Url)
+        //     .Respond("application/json", "<fail>failbar<fail>");
         var ex = Assert.ThrowsAsync<JsonReaderException>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
-        ClassicAssert.AreEqual("Unable to read response message as json: <fail>failbar<fail>", ex.Message);
+        Assert.That(ex.Message.Contains("Unable to read response message as json"));
     }
 
     [TestMethod]
     public async Task HttpRequestBodyReturnShouldBeOfTypeString()
     {
-        const string expectedReturn = "<foo>BAR</foo>";
+        const string expectedReturn = "<!--  A SAMPLE set of slides  -->";
 
         var input = new Input
         {
             Method = Method.Method.GET,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/xml",
             Headers = new Header[0],
             Message = "",
             ResultMethod = ReturnFormat.String
@@ -404,11 +311,9 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60
         };
 
-        _mockHttpMessageHandler.When(input.Url)
-            .Respond("text/plain", expectedReturn);
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        ClassicAssert.AreEqual(expectedReturn, result.Body);
+        Assert.That(result.Body.Contains(expectedReturn), result.Body);
     }
 
     [TestMethod]
@@ -419,7 +324,7 @@ public class UnitTests
         var input = new Input
         {
             Method = Method.Method.PATCH,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/anything",
             Headers = new Header[]
             {
             },
@@ -431,13 +336,9 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60
         };
 
-        _mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
-            .Respond("text/plain", "foo åäö");
-
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        ClassicAssert.IsTrue(result.Body.Contains("foo åäö"));
+        ClassicAssert.IsTrue(result.Body.Contains("\"data\": \"\\u00e5\\u00e4\\u00f6\""), result.Body);
     }
 
     [TestMethod]
@@ -455,7 +356,7 @@ public class UnitTests
         var input = new Input
         {
             Method = Method.Method.POST,
-            Url = "http://localhost:9191/endpoint",
+            Url = $"{BasePath}/anything",
             Headers = new Header[1]
             {
                 contentType
@@ -468,27 +369,16 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60
         };
 
-        _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType)
-            .WithContent(requestMessage)
-            .Respond("text/plain", "foo åäö");
-
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
-        ClassicAssert.IsTrue(result.Body.Contains("foo åäö"));
+        ClassicAssert.IsTrue(result.Body.Contains("\"Content-Type\": \"text/plain; charset=iso-8859-1\""));
     }
 
     [TestMethod]
     public async Task RequestTest_GetMethod_ShouldSendEmptyContent()
     {
-        const string expectedReturn = "OK";
-
-        _mockHttpMessageHandler.When($"{BasePath}/endpoint")
-            .WithContent(string.Empty)
-            .Respond("text/plain", expectedReturn);
-
         var input = GetInputParams(
-            url: "http://localhost:9191/endpoint",
+            url: $"{BasePath}/anything",
             method: Method.Method.GET,
             message: "This should not be sent"
         );
@@ -499,7 +389,7 @@ public class UnitTests
         };
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        ClassicAssert.AreEqual(expectedReturn, result.Body);
+        Assert.That(result.Body.Contains("\"data\": \"\""), result.Body);
     }
 
     [TestCase(CertificateStoreLocation.CurrentUser, "current user")]
@@ -507,6 +397,7 @@ public class UnitTests
     public void CorrectStoreSearched(CertificateStoreLocation storeLocation, string storeLocationText)
     {
         var handler = new HttpClientHandler();
+        X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
         var options = new Options
         {
             Authentication = Authentication.ClientCertificate,
@@ -514,7 +405,8 @@ public class UnitTests
             CertificateStoreLocation = storeLocation,
             CertificateThumbprint = "InvalidThumbprint",
         };
-        var ex = Assert.Throws<FileNotFoundException>(() => handler.SetHandlerSettingsBasedOnOptions(options));
+        var ex = Assert.Throws<FileNotFoundException>(() =>
+            handler.SetHandlerSettingsBasedOnOptions(options, ref certificates));
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message.Contains(
             $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store."));

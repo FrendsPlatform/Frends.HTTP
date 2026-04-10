@@ -135,4 +135,11 @@ public class Options
     /// <example>true</example>
     [DefaultValue(true)]
     public bool AutomaticCookieHandling { get; set; } = true;
+
+    /// <summary>
+    /// Define to use a caching mechanism for HttpClient.
+    /// </summary>
+    /// <example>true</example>
+    [DefaultValue(true)]
+    public bool CacheHttpClient { get; set; } = true;
 }
