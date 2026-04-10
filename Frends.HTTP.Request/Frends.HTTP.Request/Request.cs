@@ -1,5 +1,4 @@
-﻿using Frends.HTTP.Request.Definitions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -16,6 +15,7 @@ using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
+using Frends.HTTP.Request.Definitions;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
 
@@ -28,9 +28,9 @@ public static class HTTP
 {
     private static readonly ObjectCache ClientCache = MemoryCache.Default;
 
-    private static readonly CacheItemPolicy _cachePolicy = new()
+    private static readonly CacheItemPolicy CachePolicy = new()
     {
-        SlidingExpiration = TimeSpan.FromHours(1)
+        SlidingExpiration = TimeSpan.FromHours(1),
     };
 
     private static HttpContent httpContent;
@@ -215,11 +215,16 @@ public static class HTTP
 
     private static HttpClient GetHttpClientForOptions(Options options)
     {
-        var cacheKey = GetHttpClientCacheKey(options);
+        string cacheKey = null;
 
-        if (ClientCache.Get(cacheKey) is HttpClient client)
+        if (options.CacheHttpClient)
         {
-            return client;
+            cacheKey = GetHttpClientCacheKey(options);
+
+            if (ClientCache.Get(cacheKey) is HttpClient client)
+            {
+                return client;
+            }
         }
 
         httpClientHandler = new HttpClientHandler();
@@ -227,7 +232,7 @@ public static class HTTP
         httpClient = new HttpClient(httpClientHandler);
         httpClient.SetDefaultRequestHeadersBasedOnOptions(options);
 
-        ClientCache.Add(cacheKey, httpClient, _cachePolicy);
+        if (cacheKey != null) ClientCache.Add(cacheKey, httpClient, CachePolicy);
 
         return httpClient;
     }
