@@ -120,14 +120,15 @@ public static class HTTP
         }
         finally
         {
+            httpResponseMessage?.Dispose();
+            httpRequestMessage?.Dispose();
+            httpContent?.Dispose();
+
             if (!options.CacheHttpClient)
             {
-                httpContent?.Dispose();
+                foreach (var cert in certificates) cert?.Dispose();
                 httpClient?.Dispose();
                 httpClientHandler?.Dispose();
-                httpRequestMessage?.Dispose();
-                httpResponseMessage?.Dispose();
-                foreach (var cert in certificates) cert?.Dispose();
             }
         }
     }
