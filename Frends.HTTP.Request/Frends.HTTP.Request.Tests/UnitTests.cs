@@ -412,7 +412,7 @@ public class UnitTests
     }
 
     [TestMethod]
-    public async Task RestRequest_NonJsonErrorResponse_ShouldReturnRawStringWithStatusCode()
+    public async Task RestRequest_HtmlContentType_ShouldReturnRawStringInsteadOfThrowing()
     {
         var input = new Input
         {
