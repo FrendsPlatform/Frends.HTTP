@@ -98,9 +98,11 @@ public static class HTTP
 
                     break;
                 case ReturnFormat.JToken:
-                    var rbody = TryParseRequestStringResultAsJToken(await responseMessage.Content
+                    var rawBody = await responseMessage.Content
                         .ReadAsStringAsync(cancellationToken)
-                        .ConfigureAwait(false));
+                        .ConfigureAwait(false);
+
+                    var rbody = TryParseBodyByContentType(rawBody, responseMessage.Content.Headers?.ContentType);
                     var rstatusCode = (int)responseMessage.StatusCode;
                     var rheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
@@ -205,16 +207,34 @@ public static class HTTP
         return new StringContent(input.Message ?? string.Empty);
     }
 
-    private static object TryParseRequestStringResultAsJToken(string response)
+    private static object TryParseBodyByContentType(string responseBody, MediaTypeHeaderValue contentType)
     {
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return new JValue("");
+
+        var mediaType = contentType?.MediaType?.ToLowerInvariant();
+
+        // Explicit non-JSON content type — don't even try to parse
+        if (mediaType != null && !IsJsonMediaType(mediaType))
+            return responseBody;
+
+        // Content-Type is JSON (or unknown/missing) — attempt to parse
         try
         {
-            return string.IsNullOrWhiteSpace(response) ? new JValue("") : JToken.Parse(response);
+            return JToken.Parse(responseBody);
         }
         catch (JsonReaderException)
         {
-            throw new JsonReaderException($"Unable to read response message as json: {response}");
+            // Server lied about content-type, or no content-type was set
+            // Return the raw string rather than throwing — status code is still intact
+            return responseBody;
         }
+    }
+
+    private static bool IsJsonMediaType(string mediaType)
+    {
+        // Covers: application/json, application/problem+json, application/ld+json, text/json, etc.
+        return mediaType.Contains("json");
     }
 
     private static HttpClient GetHttpClientForOptions(Options options)
