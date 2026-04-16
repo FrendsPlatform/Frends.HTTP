@@ -98,9 +98,11 @@ public static class HTTP
 
                     break;
                 case ReturnFormat.JToken:
-                    var rbody = TryParseRequestStringResultAsJToken(await responseMessage.Content
+                    var rawBody = await responseMessage.Content
                         .ReadAsStringAsync(cancellationToken)
-                        .ConfigureAwait(false));
+                        .ConfigureAwait(false);
+
+                    var rbody = TryParseBody(rawBody);
                     var rstatusCode = (int)responseMessage.StatusCode;
                     var rheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
@@ -205,15 +207,18 @@ public static class HTTP
         return new StringContent(input.Message ?? string.Empty);
     }
 
-    private static object TryParseRequestStringResultAsJToken(string response)
+    private static object TryParseBody(string responseBody)
     {
+        if (string.IsNullOrWhiteSpace(responseBody))
+            return new JValue("");
+
         try
         {
-            return string.IsNullOrWhiteSpace(response) ? new JValue("") : JToken.Parse(response);
+            return JToken.Parse(responseBody);
         }
         catch (JsonReaderException)
         {
-            throw new JsonReaderException($"Unable to read response message as json: {response}");
+            return responseBody;
         }
     }
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.0] - 2026-04-15
+
+### Fixed
+
+- Fixed an issue where selecting JToken as the return format would throw an exception if the server returned a non-JSON response; the response body is now returned as a raw string instead, preserving the status code for flow control.
+
 ## [1.8.0] - 2026-03-07
 
 ### Fixed

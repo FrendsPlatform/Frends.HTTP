@@ -268,7 +268,7 @@ public class UnitTests
     }
 
     [TestMethod]
-    public void RestRequestShouldThrowIfReturnIsNotValidJson()
+    public async Task RestRequest_NonJsonResponse_ShouldReturnRawStringInsteadOfThrowing()
     {
         var input = new Input
         {
@@ -285,12 +285,11 @@ public class UnitTests
             Token = "fooToken"
         };
 
-        // _mockHttpMessageHandler.When(input.Url)
-        //     .Respond("application/json", "<fail>failbar<fail>");
-        var ex = Assert.ThrowsAsync<JsonReaderException>(async () =>
-            await HTTP.Request(input, options, CancellationToken.None));
+        var result = await HTTP.Request(input, options, CancellationToken.None);
 
-        Assert.That(ex.Message.Contains("Unable to read response message as json"));
+        ClassicAssert.IsInstanceOf<string>(result.Body);
+        ClassicAssert.IsTrue(((string)result.Body).Contains("<!--"));
+        ClassicAssert.AreEqual(200, result.StatusCode);
     }
 
     [TestMethod]
@@ -410,5 +409,51 @@ public class UnitTests
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message.Contains(
             $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store."));
+    }
+
+    [TestMethod]
+    public async Task RestRequest_HtmlContentType_ShouldReturnRawStringInsteadOfThrowing()
+    {
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = $"{BasePath}/html",
+            Headers = new Header[0],
+            Message = "",
+            ResultMethod = ReturnFormat.JToken
+        };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            ThrowExceptionOnErrorResponse = false
+        };
+
+        var result = await HTTP.Request(input, options, CancellationToken.None);
+
+        ClassicAssert.AreEqual(200, result.StatusCode);
+        ClassicAssert.IsInstanceOf<string>(result.Body);
+        ClassicAssert.IsTrue(((string)result.Body).Contains("<html"));
+    }
+
+    [TestMethod]
+    public async Task RestRequest_JsonContentType_ShouldStillReturnJToken()
+    {
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = $"{BasePath}/json",
+            Headers = new Header[0],
+            Message = "",
+            ResultMethod = ReturnFormat.JToken
+        };
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60
+        };
+
+        var result = await HTTP.Request(input, options, CancellationToken.None);
+
+        ClassicAssert.IsInstanceOf<JToken>(result.Body);
+        ClassicAssert.AreEqual(200, result.StatusCode);
     }
 }
