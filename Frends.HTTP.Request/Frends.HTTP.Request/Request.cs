@@ -102,7 +102,7 @@ public static class HTTP
                         .ReadAsStringAsync(cancellationToken)
                         .ConfigureAwait(false);
 
-                    var rbody = TryParseBodyByContentType(rawBody, responseMessage.Content.Headers?.ContentType);
+                    var rbody = TryParseBody(rawBody);
                     var rstatusCode = (int)responseMessage.StatusCode;
                     var rheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
@@ -207,34 +207,19 @@ public static class HTTP
         return new StringContent(input.Message ?? string.Empty);
     }
 
-    private static object TryParseBodyByContentType(string responseBody, MediaTypeHeaderValue contentType)
+    private static object TryParseBody(string responseBody)
     {
         if (string.IsNullOrWhiteSpace(responseBody))
             return new JValue("");
 
-        var mediaType = contentType?.MediaType?.ToLowerInvariant();
-
-        // Explicit non-JSON content type — don't even try to parse
-        if (mediaType != null && !IsJsonMediaType(mediaType))
-            return responseBody;
-
-        // Content-Type is JSON (or unknown/missing) — attempt to parse
         try
         {
             return JToken.Parse(responseBody);
         }
         catch (JsonReaderException)
         {
-            // Server lied about content-type, or no content-type was set
-            // Return the raw string rather than throwing — status code is still intact
             return responseBody;
         }
-    }
-
-    private static bool IsJsonMediaType(string mediaType)
-    {
-        // Covers: application/json, application/problem+json, application/ld+json, text/json, etc.
-        return mediaType.Contains("json");
     }
 
     private static HttpClient GetHttpClientForOptions(Options options)
