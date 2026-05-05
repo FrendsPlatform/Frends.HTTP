@@ -2,11 +2,11 @@
 
 ## [1.10.0] - 2026-05-05
 
-### Fixed
+### Added
 
 - Added `SslProtocolVersion` option to control the TLS version used for secure connections. Supported values: `Default` (OS decides, preserves previous behavior), `Tls12`, `Tls13`, `Tls12And13`.
-- Added `HttpProtocolVersion` option to control the HTTP protocol version used for requests. Supported values: `Http11` (default, preserves previous behavior), `Http20`.
-- 
+- Added `HttpProtocolVersion` option to control the HTTP protocol version used for requests.   Supported values: `Http11` (default, preserves previous behavior), `Http20` (requires server-side HTTP/2 support via ALPN; no fallback to HTTP/1.1).
+
 ## [1.9.0] - 2026-04-15
 
 ### Fixed

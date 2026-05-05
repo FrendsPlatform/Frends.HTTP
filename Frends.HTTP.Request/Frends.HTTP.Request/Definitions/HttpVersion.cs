@@ -10,7 +10,8 @@
         /// </summary>
         Http11,
         /// <summary>
-        /// HTTP/2 - multiplexed, requires server support.
+        /// HTTP/2 - multiplexed, requires server support. 
+        /// If the server does not support HTTP/2 via ALPN, the request will fail with an exception instead of falling back to HTTP/1.1.
         /// </summary>
         Http20
     }

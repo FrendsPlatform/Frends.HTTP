@@ -65,11 +65,11 @@ internal static class Extensions
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation("content-type", "application/json");
         httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
 
-        httpClient.DefaultRequestVersion = options.HttpProtocolVersion switch
+        if (options.HttpProtocolVersion == Definitions.HttpVersion.Http20)
         {
-            Definitions.HttpVersion.Http20 => System.Net.HttpVersion.Version20,
-            _ => System.Net.HttpVersion.Version11
-        };
+            httpClient.DefaultRequestVersion = System.Net.HttpVersion.Version20;
+            httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+        }
         httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
     }
 
