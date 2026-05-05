@@ -456,4 +456,20 @@ public class UnitTests
         ClassicAssert.IsInstanceOf<JToken>(result.Body);
         ClassicAssert.AreEqual(200, result.StatusCode);
     }
+
+    [TestMethod]
+    public async Task RequestShouldSetTls12And13WhenConfigured()
+    {
+        var input = GetInputParams(url: $"{BasePath}/anything");
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            SslProtocolVersion = SslVersion.Tls12And13,
+            HttpProtocolVersion = Definitions.HttpVersion.Http20
+        };
+
+        var result = await HTTP.Request(input, options, CancellationToken.None);
+
+        ClassicAssert.AreEqual(200, result.StatusCode);
+    }
 }
