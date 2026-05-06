@@ -65,12 +65,17 @@ internal static class Extensions
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation("content-type", "application/json");
         httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
 
-        if (options.HttpProtocolVersion == Definitions.HttpVersion.Http20)
+        httpClient.DefaultRequestVersion = options.HttpProtocolVersion switch
         {
-            httpClient.DefaultRequestVersion = System.Net.HttpVersion.Version20;
-            httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
-        }
-        httpClient.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+            Definitions.HttpVersion.Http20 => System.Net.HttpVersion.Version20,
+            _ => System.Net.HttpVersion.Version11
+        };
+
+        httpClient.DefaultVersionPolicy = options.HttpProtocolVersion switch
+        {
+            Definitions.HttpVersion.Http20 => HttpVersionPolicy.RequestVersionExact,
+            _ => HttpVersionPolicy.RequestVersionOrLower
+        };
     }
 
     private static X509Certificate[] GetCertificates(Options options, ref X509Certificate2[] certificates)
