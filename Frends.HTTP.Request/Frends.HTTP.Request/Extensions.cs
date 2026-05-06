@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Frends.HTTP.Request.Definitions;
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net;
+using System.Net.Http;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
-using Frends.HTTP.Request.Definitions;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Frends.HTTP.Request;
 
@@ -47,6 +48,14 @@ internal static class Extensions
         {
             handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
         }
+
+        handler.SslProtocols = options.SslProtocolVersion switch
+        {
+            SslVersion.Tls12 => SslProtocols.Tls12,
+            SslVersion.Tls13 => SslProtocols.Tls13,
+            SslVersion.Tls12And13 => SslProtocols.Tls12 | SslProtocols.Tls13,
+            _ => SslProtocols.None
+        };
     }
 
     internal static void SetDefaultRequestHeadersBasedOnOptions(this HttpClient httpClient, Options options)
@@ -55,6 +64,18 @@ internal static class Extensions
         httpClient.DefaultRequestHeaders.ExpectContinue = false;
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation("content-type", "application/json");
         httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
+
+        httpClient.DefaultRequestVersion = options.HttpProtocolVersion switch
+        {
+            Definitions.HttpVersion.Http20 => System.Net.HttpVersion.Version20,
+            _ => System.Net.HttpVersion.Version11
+        };
+
+        httpClient.DefaultVersionPolicy = options.HttpProtocolVersion switch
+        {
+            Definitions.HttpVersion.Http20 => HttpVersionPolicy.RequestVersionExact,
+            _ => HttpVersionPolicy.RequestVersionOrLower
+        };
     }
 
     private static X509Certificate[] GetCertificates(Options options, ref X509Certificate2[] certificates)

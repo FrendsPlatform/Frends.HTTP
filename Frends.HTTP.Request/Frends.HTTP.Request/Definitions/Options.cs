@@ -142,4 +142,19 @@ public class Options
     /// <example>true</example>
     [DefaultValue(true)]
     public bool CacheHttpClient { get; set; } = true;
+
+    /// <summary>
+    /// HTTP protocol version to use for requests. HTTP/1.1 is the default and most compatible option.
+    /// </summary>
+    /// <example>Http11</example>
+    [DefaultValue(HttpVersion.Http11)]
+    public HttpVersion HttpProtocolVersion { get; set; } = HttpVersion.Http11;
+
+    /// <summary>
+    /// SSL/TLS protocol version to use for secure connections. Default lets the OS decide, which matches previous behavior.
+    /// Use Tls12 or Tls12And13 if the server requires a specific version.
+    /// </summary>
+    /// <example>Default</example>
+    [DefaultValue(SslVersion.Default)]
+    public SslVersion SslProtocolVersion { get; set; } = SslVersion.Default;
 }
