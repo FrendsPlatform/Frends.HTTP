@@ -455,9 +455,9 @@ public class UnitTests
         var keyWithProxy = (string)method.Invoke(null, new object[] { optionsWithProxy });
 
         ClassicAssert.AreNotEqual(keyWithoutProxy, keyWithProxy);
-        StringAssert.Contains(keyWithProxy, optionsWithProxy.ProxyUrl);
-        StringAssert.Contains(keyWithProxy, optionsWithProxy.ProxyUsername);
-        StringAssert.Contains(keyWithProxy, optionsWithProxy.ProxyPassword);
+        ClassicAssert.IsTrue(keyWithProxy.Contains(optionsWithProxy.ProxyUrl));
+        ClassicAssert.IsTrue(keyWithProxy.Contains(optionsWithProxy.ProxyUsername));
+        ClassicAssert.IsTrue(keyWithProxy.Contains(optionsWithProxy.ProxyPassword));
     }
 
     [TestMethod]
