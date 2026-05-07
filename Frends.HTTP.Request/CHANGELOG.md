@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.11.0] - 2026-05-07
+
+### Added
+
+- Added proxy URL, username, and password options for configuring HTTP requests through a proxy, and included those settings in the HttpClient cache key.
+
 ## [1.10.0] - 2026-05-05
 
 ### Added
