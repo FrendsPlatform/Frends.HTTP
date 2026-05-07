@@ -419,6 +419,7 @@ public class UnitTests
         X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
         var options = new Options
         {
+            UseProxy = true,
             ProxyUrl = "http://proxy.example.com:8080",
             ProxyUsername = "proxy-user",
             ProxyPassword = "proxy-password"
