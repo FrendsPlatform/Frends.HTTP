@@ -38,6 +38,25 @@ public class Options
     public string Token { get; set; }
 
     /// <summary>
+    /// Proxy URL used for the request.
+    /// </summary>
+    /// <example>http://proxy.example.com:8080</example>
+    public string ProxyUrl { get; set; }
+
+    /// <summary>
+    /// Username for proxy authentication.
+    /// </summary>
+    /// <example>Username</example>
+    public string ProxyUsername { get; set; }
+
+    /// <summary>
+    /// Password for proxy authentication.
+    /// </summary>
+    /// <example>Password123</example>
+    [PasswordPropertyText]
+    public string ProxyPassword { get; set; }
+
+    /// <summary>
     /// Specifies where the Client Certificate should be loaded from.
     /// </summary>
     /// <example>File</example>

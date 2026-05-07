@@ -44,6 +44,17 @@ internal static class Extensions
         handler.AllowAutoRedirect = options.FollowRedirects;
         handler.UseCookies = options.AutomaticCookieHandling;
 
+        if (!string.IsNullOrWhiteSpace(options.ProxyUrl))
+        {
+            handler.Proxy = new WebProxy(options.ProxyUrl);
+            handler.UseProxy = true;
+
+            if (!string.IsNullOrWhiteSpace(options.ProxyUsername))
+            {
+                handler.Proxy.Credentials = new NetworkCredential(options.ProxyUsername, options.ProxyPassword);
+            }
+        }
+
         if (options.AllowInvalidCertificate)
         {
             handler.ServerCertificateCustomValidationCallback = (a, b, c, d) => true;
