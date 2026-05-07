@@ -15,6 +15,7 @@ using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography;
 using Frends.HTTP.Request.Definitions;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
@@ -254,9 +255,19 @@ public static class HTTP
                + $":{options.ClientCertificateFilePath}:{options.ClientCertificateInBase64}:{options.ClientCertificateKeyPhrase}"
                + $":{options.CertificateThumbprint}:{options.LoadEntireChainForCertificate}:{options.ConnectionTimeoutSeconds}"
                + $":{options.FollowRedirects}:{options.AllowInvalidCertificate}:{options.AllowInvalidResponseContentTypeCharSet}"
-                + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}"
+               + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}"
                + $":{options.SslProtocolVersion}:{options.HttpProtocolVersion}"
-               + $":{options.ProxyUrl}:{options.ProxyUsername}:{options.ProxyPassword}";
+               + $":{options.ProxyUrl}:{options.ProxyUsername}:{GetCacheKeyHash(options.ProxyPassword)}";
+    }
+
+    private static string GetCacheKeyHash(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(
