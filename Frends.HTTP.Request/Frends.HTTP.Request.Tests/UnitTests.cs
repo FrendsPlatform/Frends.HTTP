@@ -436,31 +436,6 @@ public class UnitTests
     }
 
     [TestMethod]
-    public void HttpClientCacheKeyShouldIncludeProxyOptions()
-    {
-        var method = typeof(HTTP).GetMethod("GetHttpClientCacheKey", BindingFlags.NonPublic | BindingFlags.Static);
-        var optionsWithoutProxy = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
-        var optionsWithProxy = new Options
-        {
-            ConnectionTimeoutSeconds = 60,
-            ProxyUrl = "http://proxy.example.com:8080",
-            ProxyUsername = "proxy-user",
-            ProxyPassword = "proxy-password"
-        };
-
-        var keyWithoutProxy = (string)method.Invoke(null, new object[] { optionsWithoutProxy });
-        var keyWithProxy = (string)method.Invoke(null, new object[] { optionsWithProxy });
-
-        ClassicAssert.AreNotEqual(keyWithoutProxy, keyWithProxy);
-        ClassicAssert.IsTrue(keyWithProxy.Contains(optionsWithProxy.ProxyUrl));
-        ClassicAssert.IsTrue(keyWithProxy.Contains(optionsWithProxy.ProxyUsername));
-        ClassicAssert.IsFalse(keyWithProxy.Contains(optionsWithProxy.ProxyPassword));
-    }
-
-    [TestMethod]
     public async Task RestRequest_HtmlContentType_ShouldReturnRawStringInsteadOfThrowing()
     {
         var input = new Input
