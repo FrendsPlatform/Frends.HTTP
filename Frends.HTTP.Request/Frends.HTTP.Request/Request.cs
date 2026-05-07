@@ -257,7 +257,7 @@ public static class HTTP
                + $":{options.FollowRedirects}:{options.AllowInvalidCertificate}:{options.AllowInvalidResponseContentTypeCharSet}"
                + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}"
                + $":{options.SslProtocolVersion}:{options.HttpProtocolVersion}"
-               + $":{options.ProxyUrl}:{options.ProxyUsername}:{options.ProxyPassword}";
+               + $":{options.UseProxy}:{options.ProxyUrl}:{options.ProxyUsername}:{options.ProxyPassword}";
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(

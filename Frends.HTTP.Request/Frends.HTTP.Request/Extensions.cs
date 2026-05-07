@@ -44,12 +44,20 @@ internal static class Extensions
         handler.AllowAutoRedirect = options.FollowRedirects;
         handler.UseCookies = options.AutomaticCookieHandling;
 
-        if (!string.IsNullOrWhiteSpace(options.ProxyUrl))
+        if (options.UseProxy && !string.IsNullOrWhiteSpace(options.ProxyUrl))
         {
             handler.Proxy = new WebProxy(options.ProxyUrl);
             handler.UseProxy = true;
 
-            if (!string.IsNullOrWhiteSpace(options.ProxyUsername))
+            var hasUsername = !string.IsNullOrWhiteSpace(options.ProxyUsername);
+            var hasPassword = !string.IsNullOrWhiteSpace(options.ProxyPassword);
+
+            if (hasUsername != hasPassword)
+            {
+                throw new ArgumentException("Both ProxyUsername and ProxyPassword must be provided together or left empty.");
+            }
+
+            if (hasUsername)
             {
                 handler.Proxy.Credentials = new NetworkCredential(options.ProxyUsername, options.ProxyPassword);
             }
