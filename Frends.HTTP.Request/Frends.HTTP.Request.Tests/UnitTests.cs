@@ -9,6 +9,7 @@ using Method = Frends.HTTP.Request.Definitions;
 using Assert = NUnit.Framework.Assert;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -409,6 +410,30 @@ public class UnitTests
         Assert.That(ex, Is.Not.Null);
         Assert.That(ex.Message.Contains(
             $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store."));
+    }
+
+    [TestMethod]
+    public void HandlerShouldUseConfiguredProxy()
+    {
+        var handler = new HttpClientHandler();
+        X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
+        var options = new Options
+        {
+            UseProxy = true,
+            ProxyUrl = "http://proxy.example.com:8080",
+            ProxyUsername = "proxy-user",
+            ProxyPassword = "proxy-password"
+        };
+
+        handler.SetHandlerSettingsBasedOnOptions(options, ref certificates);
+
+        var proxy = handler.Proxy as WebProxy;
+        Assert.That(proxy, Is.Not.Null);
+        ClassicAssert.IsTrue(handler.UseProxy);
+        ClassicAssert.AreEqual(new Uri("http://proxy.example.com:8080/"), proxy.Address);
+        var credentials = proxy.Credentials.GetCredential(proxy.Address, string.Empty);
+        ClassicAssert.AreEqual("proxy-user", credentials.UserName);
+        ClassicAssert.AreEqual("proxy-password", credentials.Password);
     }
 
     [TestMethod]
