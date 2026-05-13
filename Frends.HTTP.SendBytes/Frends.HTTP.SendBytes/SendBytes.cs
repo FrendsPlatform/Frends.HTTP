@@ -120,7 +120,9 @@ public class HTTP
                + $":{options.ClientCertificateFilePath}:{options.ClientCertificateInBase64}:{options.ClientCertificateKeyPhrase}"
                + $":{options.CertificateThumbprint}:{options.LoadEntireChainForCertificate}:{options.ConnectionTimeoutSeconds}"
                + $":{options.FollowRedirects}:{options.AllowInvalidCertificate}:{options.AllowInvalidResponseContentTypeCharSet}"
-               + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}";
+               + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}"
+               + $":{options.SslProtocolVersion}:{options.HttpProtocolVersion}"
+               + $":{options.UseProxy}:{options.ProxyUrl}:{options.ProxyUsername}:{options.ProxyPassword}";
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(

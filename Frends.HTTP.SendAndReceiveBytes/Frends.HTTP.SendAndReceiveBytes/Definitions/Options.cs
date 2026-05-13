@@ -40,6 +40,37 @@ public class Options
     public string Token { get; set; }
 
     /// <summary>
+    /// Whether to route requests through a proxy server. When set to true, the ProxyUrl must be provided.
+    /// </summary>
+    /// <example>false</example>
+    [DefaultValue(false)]
+    public bool UseProxy { get; set; } = false;
+
+    /// <summary>
+    /// Proxy URL used for the request.
+    /// </summary>
+    /// <example>http://proxy.example.com:8080</example>
+    [UIHint(nameof(UseProxy), "", true)]
+    public string ProxyUrl { get; set; }
+
+    /// <summary>
+    /// Username for proxy authentication. Leave empty if proxy does not require authentication.
+    /// Both username and password must be provided together or left empty.
+    /// </summary>
+    /// <example>Username</example>
+    [UIHint(nameof(UseProxy), "", true)]
+    public string ProxyUsername { get; set; }
+
+    /// <summary>
+    /// Password for proxy authentication. Leave empty if proxy does not require authentication.
+    /// Both username and password must be provided together or left empty.
+    /// </summary>
+    /// <example>Password123</example>
+    [PasswordPropertyText]
+    [UIHint(nameof(UseProxy), "", true)]
+    public string ProxyPassword { get; set; }
+
+    /// <summary>
     /// Specifies where the Client Certificate should be loaded from.
     /// </summary>
     /// <example>File</example>
@@ -138,4 +169,19 @@ public class Options
     /// <example>true</example>
     [DefaultValue(true)]
     public bool AutomaticCookieHandling { get; set; } = true;
+
+    /// <summary>
+    /// HTTP protocol version to use for requests. HTTP/1.1 is the default and most compatible option.
+    /// </summary>
+    /// <example>Http11</example>
+    [DefaultValue(HttpVersion.Http11)]
+    public HttpVersion HttpProtocolVersion { get; set; } = HttpVersion.Http11;
+
+    /// <summary>
+    /// SSL/TLS protocol version to use for secure connections. Default lets the OS decide, which matches previous behavior.
+    /// Use Tls12 or Tls12And13 if the server requires a specific version.
+    /// </summary>
+    /// <example>Default</example>
+    [DefaultValue(SslVersion.Default)]
+    public SslVersion SslProtocolVersion { get; set; } = SslVersion.Default;
 }
