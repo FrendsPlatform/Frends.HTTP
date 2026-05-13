@@ -586,7 +586,7 @@ public class UnitTests
         {
             ConnectionTimeoutSeconds = 60,
             SslProtocolVersion = SslVersion.Tls12And13,
-            HttpProtocolVersion = Definitions.HttpVersion.Http20,
+            HttpProtocolVersion = Definitions.HttpVersion.Http11,
             Overwrite = true
         };
 
