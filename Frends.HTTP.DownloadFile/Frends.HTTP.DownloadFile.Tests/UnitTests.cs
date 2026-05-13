@@ -1,9 +1,11 @@
-﻿using Frends.HTTP.DownloadFile.Definitions;
+using Frends.HTTP.DownloadFile.Definitions;
+using Definitions = Frends.HTTP.DownloadFile.Definitions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -546,4 +548,51 @@ public class UnitTests
         StringAssert.Contains(ex.Message,
             $"Certificate with thumbprint: 'INVALIDTHUMBPRINT' not found in {storeLocationText} cert store.");
     }
+
+    [TestMethod]
+    public void HandlerShouldUseConfiguredProxy()
+    {
+        var handler = new HttpClientHandler();
+        var options = new Options
+        {
+            UseProxy = true,
+            ProxyUrl = "http://proxy.example.com:8080",
+            ProxyUsername = "proxy-user",
+            ProxyPassword = "proxy-password"
+        };
+
+        handler.SetHandlerSettingsBasedOnOptions(options);
+
+        var proxy = handler.Proxy as WebProxy;
+        Assert.IsNotNull(proxy);
+        Assert.IsTrue(handler.UseProxy);
+        Assert.AreEqual(new Uri("http://proxy.example.com:8080/"), proxy.Address);
+        var credentials = proxy.Credentials.GetCredential(proxy.Address, string.Empty);
+        Assert.AreEqual("proxy-user", credentials.UserName);
+        Assert.AreEqual("proxy-password", credentials.Password);
+    }
+
+    [TestMethod]
+    public async Task RequestShouldSetTls12And13WhenConfigured()
+    {
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            SslProtocolVersion = SslVersion.Tls12And13,
+            HttpProtocolVersion = Definitions.HttpVersion.Http11,
+            Overwrite = true
+        };
+
+        var result = await HTTP.DownloadFile(input, options, default);
+
+        Assert.IsTrue(result.Success);
+    }
+
 }

@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using RichardSzalay.MockHttp;
 using Assert = NUnit.Framework.Assert;
 using Frends.HTTP.SendBytes.Definitions;
+using Definitions = Frends.HTTP.SendBytes.Definitions;
 using System.Collections.Generic;
 using System.Text;
 using Method = Frends.HTTP.SendBytes.Definitions.Method;
@@ -335,6 +336,55 @@ public class UnitTests
         _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.AreEqual("foo åäö", result.Body);
     }
+
+    [TestMethod]
+    public void HandlerShouldUseConfiguredProxy()
+    {
+        var handler = new HttpClientHandler();
+        var options = new Options
+        {
+            UseProxy = true,
+            ProxyUrl = "http://proxy.example.com:8080",
+            ProxyUsername = "proxy-user",
+            ProxyPassword = "proxy-password"
+        };
+
+        handler.SetHandlerSettingsBasedOnOptions(options);
+
+        var proxy = handler.Proxy as WebProxy;
+        Assert.That(proxy, Is.Not.Null);
+        ClassicAssert.IsTrue(handler.UseProxy);
+        ClassicAssert.AreEqual(new Uri("http://proxy.example.com:8080/"), proxy.Address);
+        var credentials = proxy.Credentials.GetCredential(proxy.Address, string.Empty);
+        ClassicAssert.AreEqual("proxy-user", credentials.UserName);
+        ClassicAssert.AreEqual("proxy-password", credentials.Password);
+    }
+
+    [TestMethod]
+    public async Task RequestShouldSetTls12And13WhenConfigured()
+    {
+        HTTP.ClientFactory = new HttpClientFactory();
+
+        var input = new Input
+        {
+            Method = Method.POST,
+            Url = "https://httpbin.org/anything",
+            Headers = Array.Empty<Header>(),
+            ContentBytes = Encoding.UTF8.GetBytes("test")
+        };
+
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            SslProtocolVersion = SslVersion.Tls12And13,
+            HttpProtocolVersion = Definitions.HttpVersion.Http20
+        };
+
+        var result = await HTTP.SendBytes(input, options, CancellationToken.None);
+
+        ClassicAssert.AreEqual(200, result.StatusCode);
+    }
+
 }
 
 public class MockHttpClientFactory : IHttpClientFactory

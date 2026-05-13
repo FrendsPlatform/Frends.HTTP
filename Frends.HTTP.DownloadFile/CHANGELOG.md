@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.5.0] - 2026-05-13
+### Added
+- Added UseProxy, ProxyUrl, ProxyUsername, ProxyPassword, HttpProtocolVersion, and SslProtocolVersion options with proxy handler and protocol configuration support.
+
 ## [1.4.0] - 2026-03-02
 ### Added
 - Added CertificateStoreLocation option to allow selection between CurrentUser and LocalMachine certificate stores when using certificate authentication.
