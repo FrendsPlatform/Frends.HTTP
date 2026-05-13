@@ -1,4 +1,5 @@
-﻿using Frends.HTTP.DownloadFile.Definitions;
+using Frends.HTTP.DownloadFile.Definitions;
+using Definitions = Frends.HTTP.DownloadFile.Definitions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -585,7 +586,7 @@ public class UnitTests
         {
             ConnectionTimeoutSeconds = 60,
             SslProtocolVersion = SslVersion.Tls12And13,
-            HttpProtocolVersion = HttpVersion.Http20,
+            HttpProtocolVersion = Definitions.HttpVersion.Http20,
             Overwrite = true
         };
 
