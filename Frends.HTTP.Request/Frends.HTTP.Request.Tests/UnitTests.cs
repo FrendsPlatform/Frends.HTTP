@@ -409,6 +409,7 @@ public class UnitTests
         Assert.That(body["data"]?.Value<string>(), Is.EqualTo(string.Empty), result.Body);
     }
 
+    [Platform("Win")]
     [TestCase(CertificateStoreLocation.CurrentUser, "current user")]
     [TestCase(CertificateStoreLocation.LocalMachine, "local machine")]
     public void CorrectStoreSearched(CertificateStoreLocation storeLocation, string storeLocationText)
