@@ -26,7 +26,7 @@ internal static class HttpBinContainer
             if (container != null)
                 return;
 
-            container = new ContainerBuilder("kennethreitz/httpbin:latest")
+            container = new ContainerBuilder("docker.io/kennethreitz/httpbin@sha256:599fe5e5073102dbb0ee3dbb65f049dab44fa9fc251f6835c9990f8fb196a72b")
                 .WithPortBinding(80, true)
                 .WithCleanUp(true)
                 .Build();
