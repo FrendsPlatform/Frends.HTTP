@@ -15,7 +15,6 @@ using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography;
 using Frends.HTTP.Request.Definitions;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
@@ -34,12 +33,6 @@ public static class HTTP
         SlidingExpiration = TimeSpan.FromHours(1),
     };
 
-    private static HttpContent httpContent;
-    private static HttpClient httpClient;
-    private static HttpClientHandler httpClientHandler;
-    private static HttpRequestMessage httpRequestMessage;
-    private static HttpResponseMessage httpResponseMessage;
-    private static X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
 
 
     internal static void ClearClientCache()
@@ -66,9 +59,12 @@ public static class HTTP
         CancellationToken cancellationToken
     )
     {
+        HttpClient httpClient = null;
+        HttpContent httpContent = null;
+
         try
         {
-            if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
+            if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException(nameof(input), "Url can not be empty.");
 
             httpClient = GetHttpClientForOptions(options);
             var headers = GetHeaderDictionary(input.Headers, options);
@@ -89,12 +85,10 @@ public static class HTTP
             switch (input.ResultMethod)
             {
                 case ReturnFormat.String:
-                    var hbody = responseMessage.Content != null
-                        ? await responseMessage.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false)
-                        : null;
+                    var hbody = await responseMessage.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                     var hstatusCode = (int)responseMessage.StatusCode;
                     var hheaders =
-                        GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content?.Headers);
+                        GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
                     response = new Result(hbody, hheaders, hstatusCode);
 
                     break;
@@ -123,15 +117,11 @@ public static class HTTP
         }
         finally
         {
-            httpResponseMessage?.Dispose();
-            httpRequestMessage?.Dispose();
             httpContent?.Dispose();
 
             if (!options.CacheHttpClient)
             {
-                foreach (var cert in certificates) cert?.Dispose();
                 httpClient?.Dispose();
-                httpClientHandler?.Dispose();
             }
         }
     }
@@ -237,9 +227,10 @@ public static class HTTP
             }
         }
 
-        httpClientHandler = new HttpClientHandler();
+        var httpClientHandler = new HttpClientHandler();
+        X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
         httpClientHandler.SetHandlerSettingsBasedOnOptions(options, ref certificates);
-        httpClient = new HttpClient(httpClientHandler);
+        var httpClient = new HttpClient(httpClientHandler);
         httpClient.SetDefaultRequestHeadersBasedOnOptions(options);
 
         if (cacheKey != null) ClientCache.Add(cacheKey, httpClient, CachePolicy);
@@ -267,7 +258,7 @@ public static class HTTP
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        httpRequestMessage = new HttpRequestMessage(new HttpMethod(method), new Uri(url));
+        var httpRequestMessage = new HttpRequestMessage(new HttpMethod(method), new Uri(url));
         httpRequestMessage.Content = content;
 
         //Clear default headers
@@ -291,6 +282,7 @@ public static class HTTP
             }
         }
 
+        HttpResponseMessage httpResponseMessage;
         try
         {
             httpResponseMessage = await client.SendAsync(httpRequestMessage, cancellationToken).ConfigureAwait(false);
@@ -303,13 +295,13 @@ public static class HTTP
                 throw;
             }
 
-            // Cancellation is from inside of the request, mostly likely a timeout
+            // Cancellation is from inside the request, mostly likely a timeout
             throw new Exception("HttpRequest was canceled, most likely due to a timeout.", canceledException);
         }
 
 
         // this check is probably not needed anymore as the new HttpClient does not fail on invalid charsets
-        if (options.AllowInvalidResponseContentTypeCharSet && httpResponseMessage.Content.Headers?.ContentType != null)
+        if (options.AllowInvalidResponseContentTypeCharSet && httpResponseMessage.Content.Headers.ContentType != null)
         {
             httpResponseMessage.Content.Headers.ContentType.CharSet = null;
         }
