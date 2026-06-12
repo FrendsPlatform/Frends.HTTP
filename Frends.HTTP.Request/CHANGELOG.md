@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.12.0] - 2026-06-12
+
+### Fixed
+
+- Fixed an issue related to concurrency problem with static fields.
+
 ## [1.11.0] - 2026-05-07
 
 ### Added
