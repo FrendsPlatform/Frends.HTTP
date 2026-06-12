@@ -20,7 +20,19 @@ namespace Frends.HTTP.Request.Tests;
 [TestClass]
 public class UnitTests
 {
-    private const string BasePath = "https://httpbin.org";
+    private static string BasePath => HttpBinContainer.BaseUrl;
+
+    [ClassInitialize]
+    public static void ClassInitialize(Microsoft.VisualStudio.TestTools.UnitTesting.TestContext _)
+    {
+        HttpBinContainer.StartAsync().GetAwaiter().GetResult();
+    }
+
+    [ClassCleanup]
+    public static void ClassCleanup()
+    {
+        HttpBinContainer.StopAsync().GetAwaiter().GetResult();
+    }
 
     [TestInitialize]
     public void TestInitialize()
@@ -28,10 +40,12 @@ public class UnitTests
         HTTP.ClearClientCache();
     }
 
-    private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = BasePath,
+    private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = null,
         string message = "",
         params Header[] headers)
     {
+        url ??= BasePath;
+
         return new Input
         {
             Method = method,
@@ -44,7 +58,6 @@ public class UnitTests
     [TestMethod]
     public async Task RequestTestGetWithParameters()
     {
-        var expected = "\"args\": {\n    \"id\": \"2\", \n    \"userId\": \"1\"\n  }";
         var input = GetInputParams(url: $"{BasePath}/anything?id=2&userId=1");
         var options = new Options
         {
@@ -52,8 +65,10 @@ public class UnitTests
         };
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
+        var body = JObject.Parse((string)result.Body);
 
-        ClassicAssert.IsTrue(result.Body.Contains(expected));
+        ClassicAssert.AreEqual("2", body["args"]?["id"]?.Value<string>());
+        ClassicAssert.AreEqual("1", body["args"]?["userId"]?.Value<string>());
     }
 
     [TestMethod]
@@ -98,7 +113,7 @@ public class UnitTests
             await HTTP.Request(input, options, CancellationToken.None));
 
         ClassicAssert.IsTrue(
-            ex.Message.Contains("Request to 'https://httpbin.org/invalid' failed with status code 404"));
+            ex.Message.Contains($"Request to '{BasePath}/invalid' failed with status code 404"));
     }
 
     [TestMethod]
@@ -337,8 +352,9 @@ public class UnitTests
         };
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
+        var body = JObject.Parse((string)result.Body);
 
-        ClassicAssert.IsTrue(result.Body.Contains("\"data\": \"\\u00e5\\u00e4\\u00f6\""), result.Body);
+        ClassicAssert.AreEqual(message, body["data"]?.Value<string>(), result.Body);
     }
 
     [TestMethod]
@@ -388,8 +404,9 @@ public class UnitTests
             ConnectionTimeoutSeconds = 60
         };
         var result = await HTTP.Request(input, options, CancellationToken.None);
+        var body = JObject.Parse((string)result.Body);
 
-        Assert.That(result.Body.Contains("\"data\": \"\""), result.Body);
+        Assert.That(body["data"]?.Value<string>(), Is.EqualTo(string.Empty), result.Body);
     }
 
     [TestCase(CertificateStoreLocation.CurrentUser, "current user")]
