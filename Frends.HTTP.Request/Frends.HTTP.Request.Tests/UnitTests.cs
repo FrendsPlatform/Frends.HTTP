@@ -414,7 +414,7 @@ public class UnitTests
     public void CorrectStoreSearched(CertificateStoreLocation storeLocation, string storeLocationText)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            Assert.Inconclusive("This test runs only on Windows.");
+            Microsoft.VisualStudio.TestTools.UnitTesting.Assert.Inconclusive("This test runs only on Windows.");
 
         var handler = new HttpClientHandler();
         X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
