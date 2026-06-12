@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,8 +10,6 @@ using Method = Frends.HTTP.Request.Definitions;
 using Assert = NUnit.Framework.Assert;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.Reflection;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -409,11 +408,14 @@ public class UnitTests
         Assert.That(body["data"]?.Value<string>(), Is.EqualTo(string.Empty), result.Body);
     }
 
-    [Platform("Win")]
-    [TestCase(CertificateStoreLocation.CurrentUser, "current user")]
-    [TestCase(CertificateStoreLocation.LocalMachine, "local machine")]
+    [DataTestMethod]
+    [DataRow(CertificateStoreLocation.CurrentUser, "current user")]
+    [DataRow(CertificateStoreLocation.LocalMachine, "local machine")]
     public void CorrectStoreSearched(CertificateStoreLocation storeLocation, string storeLocationText)
     {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            Assert.Inconclusive("This test runs only on Windows.");
+
         var handler = new HttpClientHandler();
         X509Certificate2[] certificates = Array.Empty<X509Certificate2>();
         var options = new Options
