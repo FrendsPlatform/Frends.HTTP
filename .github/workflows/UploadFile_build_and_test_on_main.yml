@@ -1,0 +1,17 @@
+name: UploadFile build_main
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Frends.HTTP.UploadFile/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/build_main.yml@main
+    with:
+      workdir: Frends.HTTP.UploadFile
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
