@@ -8,6 +8,18 @@ namespace Frends.HTTP.Request.Definitions;
 public class Result
 {
     /// <summary>
+    /// Indicates whether the task completed successfully.
+    /// </summary>
+    /// <example>true</example>
+    public bool Success { get; private set; }
+
+    /// <summary>
+    /// Error details. Null when Success is true.
+    /// </summary>
+    /// <example>null</example>
+    public Error Error { get; private set; }
+
+    /// <summary>
     /// Body of response
     /// </summary>
     /// <example>{"id": "abcdefghijkl123456789",  "success": true,  "errors": []}</example>
@@ -25,17 +37,18 @@ public class Result
     /// <example>200</example>
     public int StatusCode { get; private set; }
 
-    internal Result(string body, Dictionary<string, string> headers, int statusCode)
+    internal Result(object body, Dictionary<string, string> headers, int statusCode)
     {
+        Success = true;
+        Error = null;
         Body = body;
         Headers = headers;
         StatusCode = statusCode;
     }
 
-    internal Result(object body, Dictionary<string, string> headers, int statusCode)
+    internal Result(bool success, Error error)
     {
-        Body = body;
-        Headers = headers;
-        StatusCode = statusCode;
+        Success = success;
+        Error = error;
     }
 }

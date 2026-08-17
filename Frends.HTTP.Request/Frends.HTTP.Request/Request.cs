@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
 using Frends.HTTP.Request.Definitions;
+using Frends.HTTP.Request.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
 
@@ -114,6 +115,10 @@ public static class HTTP
             }
 
             return response;
+        }
+        catch (Exception ex)
+        {
+            return ex.Handle(options);
         }
         finally
         {
