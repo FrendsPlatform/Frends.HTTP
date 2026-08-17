@@ -50,5 +50,6 @@ public class Result
     {
         Success = success;
         Error = error;
+        StatusCode = -1;
     }
 }

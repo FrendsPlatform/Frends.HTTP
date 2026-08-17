@@ -42,6 +42,8 @@ internal class ErrorHandlerTest
         var result = await HTTP.Request(InvalidInput(), options, CancellationToken.None);
         Assert.That(result.Success, Is.False);
         Assert.That(result.Error, Is.Not.Null);
+        Assert.That(result.Error.Message, Is.Not.Null.And.Not.Empty);
+        Assert.That(result.Error.AdditionalInfo, Is.Not.Null);
     }
 
     [Test]
