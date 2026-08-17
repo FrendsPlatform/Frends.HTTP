@@ -1,3 +1,5 @@
+using System;
+
 namespace Frends.HTTP.Request.Definitions;
 
 /// <summary>
@@ -15,5 +17,5 @@ public class Error
     /// Additional error information, such as the original exception.
     /// </summary>
     /// <example>null</example>
-    public object AdditionalInfo { get; internal set; }
+    public Exception AdditionalInfo { get; internal set; }
 }
