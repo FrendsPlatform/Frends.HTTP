@@ -90,7 +90,13 @@ public static class HTTP
                     var hstatusCode = (int)responseMessage.StatusCode;
                     var hheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
-                    response = new Result(hbody, hheaders, hstatusCode);
+                    response = new Result
+                    {
+                        Success = true,
+                        Body = hbody,
+                        Headers = hheaders,
+                        StatusCode = hstatusCode
+                    };
 
                     break;
                 case ReturnFormat.JToken:
@@ -102,7 +108,13 @@ public static class HTTP
                     var rstatusCode = (int)responseMessage.StatusCode;
                     var rheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
-                    response = new Result(rbody, rheaders, rstatusCode);
+                    response = new Result
+                    {
+                        Success = true,
+                        Body = rbody,
+                        Headers = rheaders,
+                        StatusCode = rstatusCode,
+                    };
 
                     break;
                 default: throw new InvalidOperationException();

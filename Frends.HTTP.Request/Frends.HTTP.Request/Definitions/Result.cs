@@ -11,45 +11,29 @@ public class Result
     /// Indicates whether the task completed successfully.
     /// </summary>
     /// <example>true</example>
-    public bool Success { get; private set; }
+    public bool Success { get; set; }
 
     /// <summary>
     /// Error details. Null when Success is true.
     /// </summary>
     /// <example>null</example>
-    public Error Error { get; private set; }
+    public Error Error { get; set; }
 
     /// <summary>
     /// Body of response
     /// </summary>
     /// <example>{"id": "abcdefghijkl123456789",  "success": true,  "errors": []}</example>
-    public dynamic Body { get; private set; }
+    public dynamic Body { get; set; }
 
     /// <summary>
     /// Headers of response
     /// </summary>
     /// <example>{[ "content-type": "application/json", ... ]}</example>
-    public Dictionary<string, string> Headers { get; private set; }
+    public Dictionary<string, string> Headers { get; set; }
 
     /// <summary>
     /// Statuscode of response
     /// </summary>
     /// <example>200</example>
-    public int StatusCode { get; private set; }
-
-    internal Result(object body, Dictionary<string, string> headers, int statusCode)
-    {
-        Success = true;
-        Error = null;
-        Body = body;
-        Headers = headers;
-        StatusCode = statusCode;
-    }
-
-    internal Result(bool success, Error error)
-    {
-        Success = success;
-        Error = error;
-        StatusCode = -1;
-    }
+    public int StatusCode { get; set; }
 }
