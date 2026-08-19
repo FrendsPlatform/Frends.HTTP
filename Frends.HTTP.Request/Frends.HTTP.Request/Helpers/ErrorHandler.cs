@@ -46,10 +46,10 @@ internal static class ErrorHandler
         {
             Success = false,
             Error = new Error
-                {
-                    Message = errorMessage,
-                    AdditionalInfo = exception,
-                },
+            {
+                Message = errorMessage,
+                AdditionalInfo = exception,
+            },
         };
     }
 }
