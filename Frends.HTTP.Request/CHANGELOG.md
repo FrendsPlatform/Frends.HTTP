@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0] - 2026-08-17
+
+### Added
+
+- Added `ThrowErrorOnFailure` and `ErrorMessageOnFailure` options to control error handling: when `ThrowErrorOnFailure` is set to false, the task returns a `Result` with `Success = false` and an `Error` object instead of throwing an exception.
+- The `Result` type now includes `Success` and `Error` properties to indicate task outcome.
+
 ## [1.12.0] - 2026-06-12
 
 ### Fixed

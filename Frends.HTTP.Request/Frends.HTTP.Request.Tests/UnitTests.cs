@@ -86,10 +86,11 @@ public class UnitTests
             ThrowExceptionOnErrorResponse = true
         };
 
-        var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
+        var ex = Assert.ThrowsAsync<Exception>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
         ClassicAssert.IsTrue(ex.Message.Contains("Url can not be empty."));
+        Assert.That(ex.InnerException, Is.TypeOf<ArgumentNullException>());
     }
 
     [TestMethod]
@@ -108,11 +109,12 @@ public class UnitTests
             ThrowExceptionOnErrorResponse = true
         };
 
-        var ex = Assert.ThrowsAsync<WebException>(async () =>
+        var ex = Assert.ThrowsAsync<Exception>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
         ClassicAssert.IsTrue(
             ex.Message.Contains($"Request to '{BasePath}/invalid' failed with status code 404"));
+        Assert.That(ex.InnerException, Is.TypeOf<WebException>());
     }
 
     [TestMethod]
@@ -230,10 +232,11 @@ public class UnitTests
             CertificateThumbprint = thumbprint
         };
 
-        var ex = Assert.ThrowsAsync<FileNotFoundException>(async () =>
+        var ex = Assert.ThrowsAsync<Exception>(async () =>
             await HTTP.Request(input, options, CancellationToken.None));
 
         ClassicAssert.IsTrue(ex.Message.Contains($"Certificate with thumbprint: '{thumbprint}' not"));
+        Assert.That(ex.InnerException, Is.TypeOf<FileNotFoundException>());
     }
 
     [TestMethod]

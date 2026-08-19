@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
 using Frends.HTTP.Request.Definitions;
+using Frends.HTTP.Request.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
 
@@ -89,7 +90,13 @@ public static class HTTP
                     var hstatusCode = (int)responseMessage.StatusCode;
                     var hheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
-                    response = new Result(hbody, hheaders, hstatusCode);
+                    response = new Result
+                    {
+                        Success = true,
+                        Body = hbody,
+                        Headers = hheaders,
+                        StatusCode = hstatusCode
+                    };
 
                     break;
                 case ReturnFormat.JToken:
@@ -101,7 +108,13 @@ public static class HTTP
                     var rstatusCode = (int)responseMessage.StatusCode;
                     var rheaders =
                         GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers);
-                    response = new Result(rbody, rheaders, rstatusCode);
+                    response = new Result
+                    {
+                        Success = true,
+                        Body = rbody,
+                        Headers = rheaders,
+                        StatusCode = rstatusCode,
+                    };
 
                     break;
                 default: throw new InvalidOperationException();
@@ -114,6 +127,10 @@ public static class HTTP
             }
 
             return response;
+        }
+        catch (Exception ex)
+        {
+            return ex.Handle(options);
         }
         finally
         {
