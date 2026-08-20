@@ -94,6 +94,28 @@ public class UnitTests
     }
 
     [TestMethod]
+    public async Task RequestShouldFollowRedirectForRequestWithBody()
+    {
+        var input = GetInputParams(
+            method: Method.Method.POST,
+            url: $"{BasePath}/redirect-to?url=/anything&status_code=307",
+            message: "{\"value\":\"redirected\"}",
+            new Header { Name = "Content-Type", Value = "application/json" });
+
+        var options = new Options
+        {
+            ConnectionTimeoutSeconds = 60,
+            FollowRedirects = true,
+        };
+
+        var result = await HTTP.Request(input, options, CancellationToken.None);
+        var body = JObject.Parse((string)result.Body);
+
+        ClassicAssert.AreEqual(200, result.StatusCode);
+        ClassicAssert.AreEqual("redirected", body["json"]?["value"]?.Value<string>());
+    }
+
+    [TestMethod]
     public void RequestShouldThrowExceptionIfOptionIsSet()
     {
         var input = new Input
