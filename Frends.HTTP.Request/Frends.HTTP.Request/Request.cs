@@ -61,7 +61,6 @@ public static class HTTP
     )
     {
         HttpClient httpClient = null;
-        HttpContent httpContent = null;
 
         try
         {
@@ -70,12 +69,11 @@ public static class HTTP
             httpClient = GetHttpClientForOptions(options);
             var headers = GetHeaderDictionary(input.Headers, options);
 
-            httpContent = GetContent(input, headers);
             using var responseMessage = await GetHttpRequestResponseAsync(
                     httpClient,
                     input.Method.ToString(),
                     input.Url,
-                    httpContent,
+                    () => GetContent(input, headers),
                     headers,
                     options,
                     cancellationToken)
@@ -134,8 +132,6 @@ public static class HTTP
         }
         finally
         {
-            httpContent?.Dispose();
-
             if (!options.CacheHttpClient)
             {
                 httpClient?.Dispose();
@@ -270,13 +266,47 @@ public static class HTTP
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(
         HttpClient client, string method, string url,
-        HttpContent content, IDictionary<string, string> headers,
+        Func<HttpContent> contentFactory, IDictionary<string, string> headers,
         Options options, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var httpRequestMessage = new HttpRequestMessage(new HttpMethod(method), new Uri(url));
-        httpRequestMessage.Content = content;
+        // A single HttpRequestMessage (and its HttpContent) can only be sent once. When the handler
+        // follows a redirect or transparently retries a request on a shared/cached HttpClient, the same
+        // message may be re-dispatched, causing "The request message was already sent. Cannot send the
+        // same request message multiple times." We build a fresh message per attempt and retry on that
+        // specific reuse exception so the request completes transparently.
+        const int maxAttempts = 3;
+
+        for (var attempt = 1; ; attempt++)
+        {
+            var content = contentFactory();
+            var httpRequestMessage = BuildRequestMessage(method, url, content, headers);
+
+            try
+            {
+                return await SendRequestMessageAsync(client, httpRequestMessage, options, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (InvalidOperationException ex) when (attempt < maxAttempts && IsRequestAlreadySentException(ex))
+            {
+                httpRequestMessage.Dispose();
+            }
+        }
+    }
+
+    private static bool IsRequestAlreadySentException(InvalidOperationException exception)
+    {
+        return exception.Message.Contains("already sent");
+    }
+
+    private static HttpRequestMessage BuildRequestMessage(
+        string method, string url, HttpContent content, IDictionary<string, string> headers)
+    {
+        var httpRequestMessage = new HttpRequestMessage(new HttpMethod(method), new Uri(url))
+        {
+            Content = content,
+        };
 
         //Clear default headers
         content.Headers.Clear();
@@ -299,6 +329,13 @@ public static class HTTP
             }
         }
 
+        return httpRequestMessage;
+    }
+
+    private static async Task<HttpResponseMessage> SendRequestMessageAsync(
+        HttpClient client, HttpRequestMessage httpRequestMessage,
+        Options options, CancellationToken cancellationToken)
+    {
         HttpResponseMessage httpResponseMessage;
         try
         {
