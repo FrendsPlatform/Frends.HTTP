@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Text;
 using Method = Frends.HTTP.SendAndReceiveBytes.Definitions.Method;
 using System.Net;
+using System.Runtime.Caching;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
@@ -41,6 +42,30 @@ public class UnitTests
             Headers = headers,
             ContentBytes = Array.Empty<byte>(),
         };
+    }
+
+    [TestMethod]
+    public async Task RequestShouldReuseCachedClientForSameOptions()
+    {
+        _mockHttpMessageHandler.When("*").Respond(HttpStatusCode.OK);
+        var input = GetInputParams(url: $"{_basePath}/anything");
+        var opt = new Options
+        {
+            Authentication = Authentication.Basic,
+            Username = "user",
+            Password = "secret",
+            ConnectionTimeoutSeconds = 60,
+        };
+
+        await HTTP.SendAndReceiveBytes(input, opt, CancellationToken.None);
+        await HTTP.SendAndReceiveBytes(input, opt, CancellationToken.None);
+
+        ClassicAssert.AreEqual(1, MemoryCache.Default.GetCount());
+
+        opt.Password = "other";
+        await HTTP.SendAndReceiveBytes(input, opt, CancellationToken.None);
+
+        ClassicAssert.AreEqual(2, MemoryCache.Default.GetCount());
     }
 
     [TestMethod]

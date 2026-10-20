@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net;
+using System.Runtime.Caching;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
@@ -39,6 +40,35 @@ public class UnitTests
     {
         if (Directory.Exists(_directory))
             Directory.Delete(_directory, true);
+    }
+
+    [TestMethod]
+    public async Task DownloadFileShouldReuseCachedClientForSameOptions()
+    {
+        var input = new Input
+        {
+            Url = _targetFileAddress,
+            FilePath = _filePath,
+            Headers = null
+        };
+        var opt = new Options
+        {
+            Authentication = Authentication.Basic,
+            Username = "user",
+            Password = "secret",
+            ConnectionTimeoutSeconds = 60,
+            Overwrite = true,
+        };
+
+        await HTTP.DownloadFile(input, opt, default);
+        await HTTP.DownloadFile(input, opt, default);
+
+        Assert.AreEqual(1, MemoryCache.Default.GetCount());
+
+        opt.Password = "other";
+        await HTTP.DownloadFile(input, opt, default);
+
+        Assert.AreEqual(2, MemoryCache.Default.GetCount());
     }
 
     [TestMethod]
