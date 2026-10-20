@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Net.Http;
+using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.Request.Definitions;
@@ -52,6 +53,30 @@ public class UnitTests
             Headers = headers,
             Message = message
         };
+    }
+
+    [TestMethod]
+    public async Task RequestShouldReuseCachedClientForSameOptions()
+    {
+        var input = GetInputParams(url: $"{BasePath}/anything");
+        var opt = new Options
+        {
+            Authentication = Authentication.Basic,
+            Username = "user",
+            Password = "secret",
+            ConnectionTimeoutSeconds = 60,
+        };
+
+        await HTTP.Request(input, opt, CancellationToken.None);
+        await HTTP.Request(input, opt, CancellationToken.None);
+
+        ClassicAssert.AreEqual(1, MemoryCache.Default.GetCount());
+
+
+        opt.Password = "other";
+        await HTTP.Request(input, opt, CancellationToken.None);
+
+        ClassicAssert.AreEqual(2, MemoryCache.Default.GetCount());
     }
 
     [TestMethod]
