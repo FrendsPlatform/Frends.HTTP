@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.14.0] - 2026-10-20
+
+### Changed
+
+- HTTP client cache key is now derived with PBKDF2-SHA256.
+
 ## [1.13.0] - 2026-08-17
 
 ### Added
