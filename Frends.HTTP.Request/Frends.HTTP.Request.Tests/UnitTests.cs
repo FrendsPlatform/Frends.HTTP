@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Net.Http;
+using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.Request.Definitions;
@@ -52,6 +53,41 @@ public class UnitTests
             Headers = headers,
             Message = message
         };
+    }
+
+    [TestMethod]
+    public async Task RequestShouldReuseCachedClientForSameOptions()
+    {
+        var input = GetInputParams(url: $"{BasePath}/anything");
+        var opt = new Options
+        {
+            Authentication = Authentication.Basic,
+            Username = "cache-test-username",
+            Password = "cache-test-password",
+            ProxyUsername = "cache-test-proxy-username",
+            ProxyPassword = "cache-test-proxy-password",
+            ClientCertificateKeyPhrase = "cache-test-certificate-key-phrase",
+            ConnectionTimeoutSeconds = 60,
+        };
+
+        await HTTP.Request(input, opt, CancellationToken.None);
+        await HTTP.Request(input, opt, CancellationToken.None);
+
+        ClassicAssert.AreEqual(1, MemoryCache.Default.GetCount());
+
+        foreach (var cacheEntry in MemoryCache.Default)
+        {
+            ClassicAssert.IsFalse(cacheEntry.Key.Contains("cache-test-username"));
+            ClassicAssert.IsFalse(cacheEntry.Key.Contains("cache-test-password"));
+            ClassicAssert.IsFalse(cacheEntry.Key.Contains("cache-test-proxy-username"));
+            ClassicAssert.IsFalse(cacheEntry.Key.Contains("cache-test-proxy-password"));
+            ClassicAssert.IsFalse(cacheEntry.Key.Contains("cache-test-certificate-key-phrase"));
+        }
+
+        opt.Password = "other";
+        await HTTP.Request(input, opt, CancellationToken.None);
+
+        ClassicAssert.AreEqual(2, MemoryCache.Default.GetCount());
     }
 
     [TestMethod]

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2026-10-20
+### Changed
+- HTTP client cache key is now derived with PBKDF2-SHA256.
+
 ## [1.5.0] - 2026-05-13
 ### Added
 - Added UseProxy, ProxyUrl, ProxyUsername, ProxyPassword, HttpProtocolVersion, and SslProtocolVersion options with proxy handler and protocol configuration support.

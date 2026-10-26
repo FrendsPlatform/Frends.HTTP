@@ -137,13 +137,22 @@ public class HTTP
     private static string GetHttpClientCacheKey(Options options)
     {
         // Includes everything except for options.Token, which is used on request level, not http client level
-        return $"{options.Authentication}:{options.Username}:{options.Password}:{options.ClientCertificateSource}"
-               + $":{options.ClientCertificateFilePath}:{options.ClientCertificateInBase64}:{options.ClientCertificateKeyPhrase}"
-               + $":{options.CertificateThumbprint}:{options.LoadEntireChainForCertificate}:{options.ConnectionTimeoutSeconds}"
-               + $":{options.FollowRedirects}:{options.AllowInvalidCertificate}:{options.AllowInvalidResponseContentTypeCharSet}"
-               + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}"
-               + $":{options.SslProtocolVersion}:{options.HttpProtocolVersion}"
-               + $":{options.UseProxy}:{options.ProxyUrl}:{options.ProxyUsername}:{options.ProxyPassword}";
+        var raw = $"{options.Authentication}:{options.Username}:{options.Password}:{options.ClientCertificateSource}"
+                  + $":{options.ClientCertificateFilePath}:{options.ClientCertificateInBase64}:{options.ClientCertificateKeyPhrase}"
+                  + $":{options.CertificateThumbprint}:{options.LoadEntireChainForCertificate}:{options.ConnectionTimeoutSeconds}"
+                  + $":{options.FollowRedirects}:{options.AllowInvalidCertificate}:{options.AllowInvalidResponseContentTypeCharSet}"
+                  + $":{options.ThrowExceptionOnErrorResponse}:{options.AutomaticCookieHandling}"
+                  + $":{options.SslProtocolVersion}:{options.HttpProtocolVersion}"
+                  + $":{options.UseProxy}:{options.ProxyUrl}:{options.ProxyUsername}:{options.ProxyPassword}";
+
+        var salt = Encoding.UTF8.GetBytes("Frends.HTTP.RequestBytes.HttpClientCacheKey");
+        var key = System.Security.Cryptography.Rfc2898DeriveBytes.Pbkdf2(
+            Encoding.UTF8.GetBytes(raw),
+            salt,
+            10000,
+            System.Security.Cryptography.HashAlgorithmName.SHA256,
+            32);
+        return Convert.ToBase64String(key);
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(
