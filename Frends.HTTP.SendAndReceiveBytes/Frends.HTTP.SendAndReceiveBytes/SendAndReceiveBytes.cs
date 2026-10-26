@@ -1,29 +1,81 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Caching;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Net.Http;
-using System.Runtime.Caching;
-using System.Runtime.CompilerServices;
 using Frends.HTTP.SendAndReceiveBytes.Definitions;
+using Frends.HTTP.SendAndReceiveBytes.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.SendAndReceiveBytes.Tests")]
+
 namespace Frends.HTTP.SendAndReceiveBytes;
 
 /// <summary>
 /// Task class.
 /// </summary>
-public class HTTP
+public static class HTTP
 {
-    internal static IHttpClientFactory ClientFactory = new HttpClientFactory();
     internal static readonly ObjectCache ClientCache = MemoryCache.Default;
-    private static readonly CacheItemPolicy _cachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
+    private static readonly CacheItemPolicy CachePolicy = new CacheItemPolicy() { SlidingExpiration = TimeSpan.FromHours(1) };
+
+    internal static IHttpClientFactory ClientFactory { get; set; } = new HttpClientFactory();
+
+    /// <summary>
+    /// HTTP request for sending and receiving content in byte array.
+    /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends.HTTP.SendAndReceiveBytes)
+    /// </summary>
+    /// <param name="input">Input parameters.</param>
+    /// <param name="options">Additional parameters.</param>
+    /// <param name="cancellationToken">A cancellation token provided by Frends Platform.</param>
+    /// <returns>object { bool Success, byte[] BodyBytes, double BodySizeInMegaBytes, string ContentType, Dictionary(string, string) Headers, int StatusCode, object Error { string Message, Exception AdditionalInfo } }</returns>
+    public static async Task<Result> SendAndReceiveBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
+
+            var httpClient = GetHttpClientForOptions(options);
+            var headers = GetHeaderDictionary(input.Headers, options);
+
+            using var content = new ByteArrayContent(input.ContentBytes);
+            using var responseMessage = await GetHttpRequestResponseAsync(
+                    httpClient,
+                    input.Method.ToString(),
+                    input.Url,
+                    content,
+                    headers,
+                    options,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            var response = new Result
+            {
+                Success = true,
+                BodyBytes = await responseMessage.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false),
+                ContentType = responseMessage.Content.Headers.ContentType?.ToString(),
+                Headers = GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers),
+                StatusCode = (int)responseMessage.StatusCode,
+                Error = null,
+            };
+
+            if (!responseMessage.IsSuccessStatusCode && options.ThrowExceptionOnErrorResponse)
+                throw new WebException($"Request to '{input.Url}' failed with status code {(int)responseMessage.StatusCode}.");
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            return ex.Handle(options);
+        }
+    }
 
     internal static void ClearClientCache()
     {
@@ -32,40 +84,6 @@ public class HTTP
         {
             ClientCache.Remove(cacheKey);
         }
-    }
-
-    /// <summary>
-    /// HTTP request for sending and receiving content in byte array.
-    /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends.HTTP.SendAndReceiveBytes)
-    /// </summary>
-    /// <param name="input"></param>
-    /// <param name="options"></param>
-    /// <param name="cancellationToken"/>
-    /// <returns>Object { byte[] BodyBytes, double BodySizeInMegaBytes, MediaTypeHeaderValue ContentType, Dictionary(string, string) Headers, int StatusCode }</returns>
-    public static async Task<Result> SendAndReceiveBytes([PropertyTab] Input input, [PropertyTab] Options options, CancellationToken cancellationToken)
-    {
-        if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
-
-        var httpClient = GetHttpClientForOptions(options);
-        var headers = GetHeaderDictionary(input.Headers, options);
-
-        using var content = new ByteArrayContent(input.ContentBytes);
-        using var responseMessage = await GetHttpRequestResponseAsync(
-                httpClient,
-                input.Method.ToString(),
-                input.Url,
-                content,
-                headers,
-                options,
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        var response = new Result(await responseMessage.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false), responseMessage.Content.Headers.ContentType, GetResponseHeaderDictionary(responseMessage.Headers, responseMessage.Content.Headers), (int)responseMessage.StatusCode);
-
-        if (!responseMessage.IsSuccessStatusCode && options.ThrowExceptionOnErrorResponse)
-            throw new WebException($"Request to '{input.Url}' failed with status code {(int)responseMessage.StatusCode}.");
-
-        return response;
     }
 
     // Combine response- and responsecontent header to one dictionary
@@ -95,7 +113,7 @@ public class HTTP
             }
         }
 
-        //Ignore case for headers and key comparison
+        // Ignore case for headers and key comparison
         return headers.ToDictionary(key => key.Name, value => value.Value, StringComparer.InvariantCultureIgnoreCase);
     }
 
@@ -109,7 +127,7 @@ public class HTTP
         httpClient = ClientFactory.CreateClient(options);
         httpClient.SetDefaultRequestHeadersBasedOnOptions(options);
 
-        ClientCache.Add(cacheKey, httpClient, _cachePolicy);
+        ClientCache.Add(cacheKey, httpClient, CachePolicy);
 
         return httpClient;
     }
@@ -136,9 +154,13 @@ public class HTTP
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(
-            HttpClient httpClient, string method, string url,
-            HttpContent content, IDictionary<string, string> headers,
-            Options options, CancellationToken cancellationToken)
+            HttpClient httpClient,
+            string method,
+            string url,
+            HttpContent content,
+            IDictionary<string, string> headers,
+            Options options,
+            CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -150,14 +172,14 @@ public class HTTP
             Content = isContentAllowed ? content : null,
         };
 
-        //Clear default headers
+        // Clear default headers
         content.Headers.Clear();
         foreach (var header in headers)
         {
             var requestHeaderAddedSuccessfully = request.Headers.TryAddWithoutValidation(header.Key, header.Value);
             if (!requestHeaderAddedSuccessfully && request.Content != null)
             {
-                //Could not add to request headers try to add to content headers
+                // Could not add to request headers try to add to content headers
                 // this check is probably not needed anymore as the new HttpClient does not seem fail on malformed headers
                 var contentHeaderAddedSuccessfully = content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 if (!contentHeaderAddedSuccessfully)
@@ -173,13 +195,13 @@ public class HTTP
         catch (TaskCanceledException canceledException)
         {
             if (cancellationToken.IsCancellationRequested)
-                // Cancellation is from outside -> Just throw 
+
+                // Cancellation is from outside -> Just throw
                 throw;
 
             // Cancellation is from inside of the request, mostly likely a timeout
             throw new Exception("HttpRequest was canceled, most likely due to a timeout.", canceledException);
         }
-
 
         // this check is probably not needed anymore as the new HttpClient does not fail on invalid charsets
         if (options.AllowInvalidResponseContentTypeCharSet && response.Content.Headers?.ContentType != null)
@@ -188,4 +210,3 @@ public class HTTP
         return response;
     }
 }
-
