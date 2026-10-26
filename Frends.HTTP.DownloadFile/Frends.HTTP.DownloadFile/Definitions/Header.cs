@@ -1,4 +1,4 @@
-﻿namespace Frends.HTTP.DownloadFile.Definitions;
+namespace Frends.HTTP.DownloadFile.Definitions;
 
 /// <summary>
 /// Request header.

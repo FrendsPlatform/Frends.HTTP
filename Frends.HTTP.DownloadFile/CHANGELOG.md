@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0] - 2026-10-26
+### Added
+- Added ThrowErrorOnFailure and ErrorMessageOnFailure options. By default errors are still thrown as before; when ThrowErrorOnFailure is false the Task returns Success = false and an Error object instead.
+- Added Error property to the Task result.
+### Changed
+- Task now targets .NET 8.
+
 ## [1.6.0] - 2026-10-20
 ### Changed
 - HTTP client cache key is now derived with PBKDF2-SHA256.

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace Frends.HTTP.DownloadFile.Definitions;
@@ -9,7 +9,7 @@ namespace Frends.HTTP.DownloadFile.Definitions;
 public class Input
 {
     /// <summary>
-    /// The URL with protocol and path. 
+    /// The URL with protocol and path.
     /// You can include query parameters directly in the URL.
     /// </summary>
     /// <example>https://example.org/path/to</example>
