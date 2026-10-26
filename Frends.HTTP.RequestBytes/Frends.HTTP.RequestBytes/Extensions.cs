@@ -2,10 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Net;
-using System.Security.Cryptography.X509Certificates;
+using System.Net.Http;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
 using Frends.HTTP.RequestBytes.Definitions;
 
@@ -73,13 +73,13 @@ internal static class Extensions
             SslVersion.Tls12 => SslProtocols.Tls12,
             SslVersion.Tls13 => SslProtocols.Tls13,
             SslVersion.Tls12And13 => SslProtocols.Tls12 | SslProtocols.Tls13,
-            _ => SslProtocols.None
+            _ => SslProtocols.None,
         };
     }
 
     internal static void SetDefaultRequestHeadersBasedOnOptions(this HttpClient httpClient, Options options)
     {
-        //Do not automatically set expect 100-continue response header
+        // Do not automatically set expect 100-continue response header
         httpClient.DefaultRequestHeaders.ExpectContinue = false;
         httpClient.DefaultRequestHeaders.TryAddWithoutValidation("content-type", "application/json");
         httpClient.Timeout = TimeSpan.FromSeconds(Convert.ToDouble(options.ConnectionTimeoutSeconds));
@@ -87,13 +87,13 @@ internal static class Extensions
         httpClient.DefaultRequestVersion = options.HttpProtocolVersion switch
         {
             Definitions.HttpVersion.Http20 => System.Net.HttpVersion.Version20,
-            _ => System.Net.HttpVersion.Version11
+            _ => System.Net.HttpVersion.Version11,
         };
 
         httpClient.DefaultVersionPolicy = options.HttpProtocolVersion switch
         {
             Definitions.HttpVersion.Http20 => HttpVersionPolicy.RequestVersionExact,
-            _ => HttpVersionPolicy.RequestVersionOrLower
+            _ => HttpVersionPolicy.RequestVersionOrLower,
         };
     }
 
@@ -151,8 +151,10 @@ internal static class Extensions
         return LoadCertificatesFromBytes(File.ReadAllBytes(clientCertificateFilePath), keyPhrase);
     }
 
-    private static X509Certificate2[] GetCertificatesFromStore(string thumbprint,
-        bool loadEntireChain, CertificateStoreLocation storeLocation)
+    private static X509Certificate2[] GetCertificatesFromStore(
+        string thumbprint,
+        bool loadEntireChain,
+        CertificateStoreLocation storeLocation)
     {
         thumbprint = Regex.Replace(thumbprint, @"[^\da-zA-z]", string.Empty).ToUpper();
         var location = storeLocation == CertificateStoreLocation.CurrentUser
@@ -174,7 +176,6 @@ internal static class Extensions
             }
 
             var certificate = signingCert[0];
-
 
             if (!loadEntireChain)
             {
