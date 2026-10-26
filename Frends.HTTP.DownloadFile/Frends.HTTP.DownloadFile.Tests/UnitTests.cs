@@ -54,8 +54,11 @@ public class UnitTests
         var opt = new Options
         {
             Authentication = Authentication.Basic,
-            Username = "user",
-            Password = "secret",
+            Username = "cache-test-username",
+            Password = "cache-test-password",
+            ProxyUsername = "cache-test-proxy-username",
+            ProxyPassword = "cache-test-proxy-password",
+            ClientCertificateKeyPhrase = "cache-test-certificate-key-phrase",
             ConnectionTimeoutSeconds = 60,
             Overwrite = true,
         };
@@ -64,6 +67,15 @@ public class UnitTests
         await HTTP.DownloadFile(input, opt, default);
 
         Assert.AreEqual(1, MemoryCache.Default.GetCount());
+
+        foreach (var cacheEntry in MemoryCache.Default)
+        {
+            Assert.IsFalse(cacheEntry.Key.Contains("cache-test-username"));
+            Assert.IsFalse(cacheEntry.Key.Contains("cache-test-password"));
+            Assert.IsFalse(cacheEntry.Key.Contains("cache-test-proxy-username"));
+            Assert.IsFalse(cacheEntry.Key.Contains("cache-test-proxy-password"));
+            Assert.IsFalse(cacheEntry.Key.Contains("cache-test-certificate-key-phrase"));
+        }
 
         opt.Password = "other";
         await HTTP.DownloadFile(input, opt, default);
