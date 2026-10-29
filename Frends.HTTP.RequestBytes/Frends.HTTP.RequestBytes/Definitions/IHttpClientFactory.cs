@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 
 namespace Frends.HTTP.RequestBytes.Definitions;
 
@@ -10,5 +10,7 @@ public interface IHttpClientFactory
     /// <summary>
     /// Create client
     /// </summary>
+    /// <param name="options">Task options.</param>
+    /// <returns>Configured HTTP client.</returns>
     HttpClient CreateClient(Options options);
 }

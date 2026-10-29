@@ -1,47 +1,35 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
+using System.Runtime.Caching;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RichardSzalay.MockHttp;
-using Assert = NUnit.Framework.Assert;
 using Frends.HTTP.RequestBytes.Definitions;
-using Definitions = Frends.HTTP.RequestBytes.Definitions;
-using System.Collections.Generic;
-using System.Text;
-using Method = Frends.HTTP.RequestBytes.Definitions.Method;
-using System.Net;
-using System.Runtime.Caching;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+using RichardSzalay.MockHttp;
+using Assert = NUnit.Framework.Assert;
+using Definitions = Frends.HTTP.RequestBytes.Definitions;
+using Method = Frends.HTTP.RequestBytes.Definitions.Method;
 
 namespace Frends.HTTP.RequestBytes.Tests;
 
 [TestClass]
 public class UnitTests
 {
-    private const string _basePath = "http://localhost:9191";
-    private MockHttpMessageHandler _mockHttpMessageHandler;
+    private const string BasePath = "http://localhost:9191";
+    private MockHttpMessageHandler mockHttpMessageHandler;
 
     [TestInitialize]
     public void TestInitialize()
     {
-        _mockHttpMessageHandler = new MockHttpMessageHandler();
+        mockHttpMessageHandler = new MockHttpMessageHandler();
         HTTP.ClearClientCache();
-        HTTP.ClientFactory = new MockHttpClientFactory(_mockHttpMessageHandler);
-    }
-
-    private static Input GetInputParams(Method method = Method.GET, string url = _basePath, string message = "",
-        params Header[] headers)
-    {
-        return new Input
-        {
-            Method = method,
-            Url = url,
-            Headers = headers,
-            Message = message
-        };
+        HTTP.ClientFactory = new MockHttpClientFactory(mockHttpMessageHandler);
     }
 
     [TestCase(CertificateStoreLocation.CurrentUser, "current user")]
@@ -65,8 +53,8 @@ public class UnitTests
     [TestMethod]
     public async Task RequestShouldReuseCachedClientForSameOptions()
     {
-        _mockHttpMessageHandler.When("*").Respond(HttpStatusCode.OK);
-        var input = GetInputParams(url: $"{_basePath}/anything");
+        mockHttpMessageHandler.When("*").Respond(HttpStatusCode.OK);
+        var input = GetInputParams(url: $"{BasePath}/anything");
         var opt = new Options
         {
             Authentication = Authentication.Basic,
@@ -104,14 +92,14 @@ public class UnitTests
         var input = new Input
         {
             Method = Method.GET,
-            Url = "",
+            Url = string.Empty,
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
-            ThrowExceptionOnErrorResponse = true
+            ThrowExceptionOnErrorResponse = true,
         };
 
         var ex = Assert.ThrowsAsync<ArgumentNullException>(async () =>
@@ -129,14 +117,14 @@ public class UnitTests
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.ClientCertificate,
-            CertificateThumbprint = thumbprint
+            CertificateThumbprint = thumbprint,
         };
 
         HTTP.ClientFactory = new HttpClientFactory();
@@ -155,15 +143,15 @@ public class UnitTests
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
-            ConnectionTimeoutSeconds = 60
+            ConnectionTimeoutSeconds = 60,
         };
 
-        _mockHttpMessageHandler.When(input.Url)
-            .Respond("application/octet-stream", String.Empty);
+        mockHttpMessageHandler.When(input.Url)
+            .Respond("application/octet-stream", string.Empty);
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
         ClassicAssert.AreEqual(0, result.BodySizeInMegaBytes);
@@ -181,17 +169,17 @@ public class UnitTests
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
-            ConnectionTimeoutSeconds = 60
+            ConnectionTimeoutSeconds = 60,
         };
 
         var actualFileBytes = File.ReadAllBytes(localTestFilePath);
 
         using var ms = new MemoryStream(actualFileBytes);
-        _mockHttpMessageHandler.When(input.Url)
+        mockHttpMessageHandler.When(input.Url)
             .Respond("image/png", ms);
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
@@ -208,7 +196,7 @@ public class UnitTests
         var input = GetInputParams(url: "http://localhost:9191/endpoint?foo=bar&bar=foo");
         var options = new Options
         {
-            ConnectionTimeoutSeconds = 60
+            ConnectionTimeoutSeconds = 60,
         };
 
         var dict = new Dictionary<string, string>()
@@ -218,10 +206,10 @@ public class UnitTests
             },
             {
                 "bar", "foo"
-            }
+            },
         };
 
-        _mockHttpMessageHandler.When(input.Url).WithQueryString(dict)
+        mockHttpMessageHandler.When(input.Url).WithQueryString(dict)
             .Respond("application/octet-stream", "FooBar");
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
@@ -234,7 +222,7 @@ public class UnitTests
     {
         const string expectedReturn = @"'FooBar'";
 
-        _mockHttpMessageHandler.When($"{_basePath}/endpoint")
+        mockHttpMessageHandler.When($"{BasePath}/endpoint")
             .Respond(HttpStatusCode.InternalServerError, "application/json", expectedReturn);
 
         var input = new Input
@@ -242,12 +230,12 @@ public class UnitTests
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
-            ThrowExceptionOnErrorResponse = true
+            ThrowExceptionOnErrorResponse = true,
         };
 
         Assert.ThrowsAsync<WebException>(async () =>
@@ -259,7 +247,7 @@ public class UnitTests
     {
         var expectedReturn = Encoding.ASCII.GetBytes("FooBar");
 
-        _mockHttpMessageHandler.When($"{_basePath}/endpoint")
+        mockHttpMessageHandler.When($"{BasePath}/endpoint")
             .Respond(HttpStatusCode.InternalServerError, "application/octet-stream", "FooBar");
 
         var input = new Input
@@ -267,12 +255,12 @@ public class UnitTests
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
-            ThrowExceptionOnErrorResponse = false
+            ThrowExceptionOnErrorResponse = false,
         };
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
@@ -290,7 +278,7 @@ public class UnitTests
             Method = Method.GET,
             Url = " http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
@@ -298,17 +286,17 @@ public class UnitTests
             ThrowExceptionOnErrorResponse = true,
             Authentication = Authentication.Basic,
             Username = Guid.NewGuid().ToString(),
-            Password = Guid.NewGuid().ToString()
+            Password = Guid.NewGuid().ToString(),
         };
         var sentAuthValue =
             "Basic " + Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"));
 
-        _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", sentAuthValue)
+        mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", sentAuthValue)
             .Respond("application/octet-stream", "FooBar");
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
@@ -322,20 +310,20 @@ public class UnitTests
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[0],
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
             Authentication = Authentication.OAuth,
-            Token = "fooToken"
+            Token = "fooToken",
         };
 
-        _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
+        mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", "Bearer fooToken")
             .Respond("application/octet-stream", "FooBar");
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
@@ -353,23 +341,23 @@ public class UnitTests
                 new Header()
                 {
                     Name = "Authorization",
-                    Value = "Basic fooToken"
-                }
+                    Value = "Basic fooToken",
+                },
             },
-            Message = ""
+            Message = string.Empty,
         };
         var options = new Options
         {
             ConnectionTimeoutSeconds = 60,
             Authentication = Authentication.OAuth,
-            Token = "barToken"
+            Token = "barToken",
         };
 
-        _mockHttpMessageHandler.Expect($"{_basePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
+        mockHttpMessageHandler.Expect($"{BasePath}/endpoint").WithHeaders("Authorization", "Basic fooToken")
             .Respond("application/octet-stream", "FooBar");
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.AreEqual(expectedReturn, result.Body);
     }
 
@@ -385,19 +373,19 @@ public class UnitTests
             Headers = new Header[]
             {
             },
-            Message = message
+            Message = message,
         };
         var options = new Options
         {
-            ConnectionTimeoutSeconds = 60
+            ConnectionTimeoutSeconds = 60,
         };
 
-        _mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
+        mockHttpMessageHandler.Expect(new HttpMethod("PATCH"), input.Url).WithContent(message)
             .Respond("application/octet-stream", message);
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.AreEqual(message, Encoding.UTF8.GetString(result.Body));
     }
 
@@ -411,7 +399,7 @@ public class UnitTests
         var contentType = new Header
         {
             Name = "cONTENT-tYpE",
-            Value = expectedContentType
+            Value = expectedContentType,
         };
         var input = new Input
         {
@@ -419,22 +407,22 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new Header[1]
             {
-                contentType
+                contentType,
             },
-            Message = requestMessage
+            Message = requestMessage,
         };
         var options = new Options
         {
-            ConnectionTimeoutSeconds = 60
+            ConnectionTimeoutSeconds = 60,
         };
 
-        _mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType)
+        mockHttpMessageHandler.Expect(HttpMethod.Post, input.Url).WithHeaders("cONTENT-tYpE", expectedContentType)
             .WithContent(requestMessage)
             .Respond("application/octet-stream", "foo åäö");
 
         var result = (dynamic)await HTTP.RequestBytes(input, options, CancellationToken.None);
 
-        _mockHttpMessageHandler.VerifyNoOutstandingExpectation();
+        mockHttpMessageHandler.VerifyNoOutstandingExpectation();
         ClassicAssert.AreEqual("foo åäö", Encoding.UTF8.GetString(result.Body));
     }
 
@@ -447,7 +435,7 @@ public class UnitTests
             UseProxy = true,
             ProxyUrl = "http://proxy.example.com:8080",
             ProxyUsername = "proxy-user",
-            ProxyPassword = "proxy-password"
+            ProxyPassword = "proxy-password",
         };
 
         handler.SetHandlerSettingsBasedOnOptions(options);
@@ -471,7 +459,7 @@ public class UnitTests
         {
             ConnectionTimeoutSeconds = 60,
             SslProtocolVersion = SslVersion.Tls12And13,
-            HttpProtocolVersion = Definitions.HttpVersion.Http20
+            HttpProtocolVersion = Definitions.HttpVersion.Http20,
         };
 
         var result = await HTTP.RequestBytes(input, options, CancellationToken.None);
@@ -479,19 +467,18 @@ public class UnitTests
         ClassicAssert.AreEqual(200, result.StatusCode);
     }
 
-}
-
-public class MockHttpClientFactory : IHttpClientFactory
-{
-    private readonly MockHttpMessageHandler _mockHttpMessageHandler;
-
-    public MockHttpClientFactory(MockHttpMessageHandler mockHttpMessageHandler)
+    private static Input GetInputParams(
+        Method method = Method.GET,
+        string url = BasePath,
+        string message = "",
+        params Header[] headers)
     {
-        _mockHttpMessageHandler = mockHttpMessageHandler;
-    }
-
-    public HttpClient CreateClient(Options options)
-    {
-        return _mockHttpMessageHandler.ToHttpClient();
+        return new Input
+        {
+            Method = method,
+            Url = url,
+            Headers = headers,
+            Message = message,
+        };
     }
 }
