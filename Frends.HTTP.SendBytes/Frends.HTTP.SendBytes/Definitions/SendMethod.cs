@@ -9,16 +9,19 @@ public enum SendMethod
     /// POST Request.
     /// </summary>
     POST,
+
     /// <summary>
     /// PUT Request.
     /// </summary>
     PUT,
+
     /// <summary>
     /// PATCH Request.
     /// </summary>
     PATCH,
+
     /// <summary>
     /// DELETE Request.
     /// </summary>
-    DELETE
+    DELETE,
 }
