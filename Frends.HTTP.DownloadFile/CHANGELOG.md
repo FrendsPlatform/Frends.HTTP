@@ -1,9 +1,10 @@
 # Changelog
 
-## [1.7.0] - 2026-10-26
+## [2.0.0] - 2026-10-26
 ### Added
 - Added ThrowErrorOnFailure and ErrorMessageOnFailure options. By default errors are still thrown as before; when ThrowErrorOnFailure is false the Task returns Success = false and an Error object instead.
 - Added Error property to the Task result.
+- **[Breaking Change]** Task rethrows exception when occured instead of creating a new generic Exception.
 ### Changed
 - Task now targets .NET 8.
 
