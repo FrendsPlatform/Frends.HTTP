@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.0] - 2026-10-26
+### Changed
+- **[Breaking Change]** `Result.ContentType` is now a string instead of a `MediaTypeHeaderValue` object.
+- Upgraded the Task to target .NET 8.
+- Added `Success` and `Error` properties to the result.
+- Added `ThrowErrorOnFailure` (default true) and `ErrorMessageOnFailure` options. When `ThrowErrorOnFailure` is false, errors are returned in the result instead of being thrown.
+
 ## [1.6.0] - 2026-10-20
 ### Changed
 - HTTP client cache key is now derived with PBKDF2-SHA256.
