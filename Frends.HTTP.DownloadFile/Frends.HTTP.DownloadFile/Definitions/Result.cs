@@ -1,4 +1,4 @@
-﻿namespace Frends.HTTP.DownloadFile.Definitions;
+namespace Frends.HTTP.DownloadFile.Definitions;
 
 /// <summary>
 /// Result class
@@ -9,17 +9,17 @@ public class Result
     /// Task complete.
     /// </summary>
     /// <example>True</example>
-    public bool Success { get; private set; }
+    public bool Success { get; set; }
 
     /// <summary>
     /// Path to created file.
     /// </summary>
     /// <example>C:\\temp.txt</example>
-    public string FilePath { get; private set; }
+    public string FilePath { get; set; }
 
-    internal Result(bool success, string filePath)
-    {
-        Success = success;
-        FilePath = filePath;
-    }
+    /// <summary>
+    /// Error that occurred during task execution.
+    /// </summary>
+    /// <example>object { string Message, Exception AdditionalInfo }</example>
+    public Error Error { get; set; }
 }
