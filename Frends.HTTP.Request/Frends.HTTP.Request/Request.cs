@@ -56,9 +56,8 @@ public static class HTTP
             if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException(nameof(input), "Url can not be empty.");
 
             httpClient = GetHttpClientForOptions(options);
-            var standardHeaders = GetHeaderDictionary(input.Headers, options);
-            var secretHeaders = GetHeaderDictionary(input.SecretHeaders, options);
-            var headers = standardHeaders.Concat(secretHeaders).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            var concatHeader = (input.Headers ?? []).Cast<IHeader>().Concat(input.SecretHeaders ?? []).ToArray();
+            var headers = GetHeaderDictionary(concatHeader, options);
 
             httpContent = GetContent(input, headers);
             using var responseMessage = await GetHttpRequestResponseAsync(

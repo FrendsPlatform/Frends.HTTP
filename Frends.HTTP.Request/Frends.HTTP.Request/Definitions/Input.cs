@@ -42,11 +42,11 @@ public class Input
     /// List of HTTP headers to be added to the request.
     /// </summary>
     /// <example>Name: Header, Value: HeaderValue.</example>
-    public StandardHeader[] Headers { get; set; }
+    public StandardHeader[] Headers { get; set; } = [];
 
     /// <summary>
     /// List of HTTP headers treated as a secrets, which will be added to the request.
     /// </summary>
     /// <example>Name: Header, Value: SecretValue.</example>
-    public SecretHeader[] SecretHeaders { get; set; }
+    public SecretHeader[] SecretHeaders { get; set; } = [];
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.15.0] - 2026-11-06
+
+### Added
+
+- Introduce `SecretHeaders` to Input tab to allow adding headers treated as secrets in Frends UI.
+
 ## [1.14.0] - 2026-10-20
 
 ### Changed
