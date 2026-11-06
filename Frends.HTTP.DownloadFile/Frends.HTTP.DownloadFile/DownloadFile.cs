@@ -13,6 +13,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.DownloadFile.Definitions;
+
+using Frends.HTTP.DownloadFile.Definitions.Header;
 using Frends.HTTP.DownloadFile.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.DownloadFile.Tests")]
@@ -53,7 +55,8 @@ public static class HTTP
             if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException(nameof(input.Url));
 
             var httpClient = GetHttpClientForOptions(options);
-            var headers = GetHeaderDictionary(input.Headers, options);
+            var concatHeader = (input.Headers ?? []).Cast<IHeader>().Concat(input.SecretHeaders ?? []).ToArray();
+            var headers = GetHeaderDictionary(concatHeader, options);
 
             // Clear default headers
             httpClient.DefaultRequestHeaders.Clear();
@@ -89,31 +92,26 @@ public static class HTTP
             ClientCache.Remove(cacheKey);
     }
 
-    private static IDictionary<string, string> GetHeaderDictionary(Header[] headers, Options options)
+    private static IDictionary<string, string> GetHeaderDictionary(IHeader[] headers, Options options)
     {
-        if (headers != null)
+        if (!headers.Any(header => header.Name.ToLower().Equals("authorization")))
         {
-            if (!headers.Any(header => header.Name.ToLower().Equals("authorization")))
+            var authHeader = new StandardHeader { Name = "Authorization" };
+            switch (options.Authentication)
             {
-                var authHeader = new Header { Name = "Authorization" };
-                switch (options.Authentication)
-                {
-                    case Authentication.Basic:
-                        authHeader.Value = $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"))}";
-                        headers = headers.Concat(new[] { authHeader }).ToArray();
-                        break;
-                    case Authentication.OAuth:
-                        authHeader.Value = $"Bearer {options.Token}";
-                        headers = headers.Concat(new[] { authHeader }).ToArray();
-                        break;
-                }
+                case Authentication.Basic:
+                    authHeader.Value = $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"))}";
+                    headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
+                    break;
+                case Authentication.OAuth:
+                    authHeader.Value = "******";
+                    headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
+                    break;
             }
-
-            // Ignore case for headers and key comparison
-            return headers.ToDictionary(key => key.Name, value => value.Value, StringComparer.InvariantCultureIgnoreCase);
         }
 
-        return null;
+        // Ignore case for headers and key comparison
+        return headers.ToDictionary(key => key.Name, value => value.Value, StringComparer.InvariantCultureIgnoreCase);
     }
 
     private static HttpClient GetHttpClientForOptions(Options options)

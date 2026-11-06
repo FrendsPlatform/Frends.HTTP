@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.0] - 2026-11-06
+### Added
+- Added `SecretHeaders` to the Input tab so header values can be treated as secrets in the Frends UI.
+
 ## [2.0.0] - 2026-10-26
 ### Added
 - Added ThrowErrorOnFailure and ErrorMessageOnFailure options. By default errors are still thrown as before; when ThrowErrorOnFailure is false the Task returns Success = false and an Error object instead.

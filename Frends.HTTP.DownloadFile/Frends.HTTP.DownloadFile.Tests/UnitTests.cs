@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -8,7 +8,9 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Frends.HTTP.DownloadFile.Definitions;
+using Frends.HTTP.DownloadFile.Definitions.Header;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using RichardSzalay.MockHttp;
 using Definitions = Frends.HTTP.DownloadFile.Definitions;
 
 namespace Frends.HTTP.DownloadFile.Tests;
@@ -16,6 +18,8 @@ namespace Frends.HTTP.DownloadFile.Tests;
 [TestClass]
 public class UnitTests
 {
+    private const string HeaderTestAddress = "http://localhost:9191/headers";
+
     private static readonly string TestDirectory = Path.Combine(Environment.CurrentDirectory, "testfiles");
     private static readonly string TestFilePath = Path.Combine(TestDirectory, "picture.jpg");
 
@@ -212,7 +216,7 @@ public class UnitTests
     {
         var headers = new[]
         {
-            new Header
+            new StandardHeader
             {
                 Name = "foo",
                 Value = "bar",
@@ -285,6 +289,34 @@ public class UnitTests
             }
         }
     }
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendNoCustomHeadersWhenNoneAreConfigured() =>
+        await AssertHeaderScenario(Array.Empty<StandardHeader>(), Array.Empty<SecretHeader>(), null, null);
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendStandardHeaders() =>
+        await AssertHeaderScenario(
+            [new StandardHeader { Name = "X-Standard-Test", Value = "standard-value" }],
+            Array.Empty<SecretHeader>(),
+            "standard-value",
+            null);
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendSecretHeaders() =>
+        await AssertHeaderScenario(
+            Array.Empty<StandardHeader>(),
+            [new SecretHeader { Name = "X-Secret-Test", Value = "secret-value" }],
+            null,
+            "secret-value");
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendStandardAndSecretHeaders() =>
+        await AssertHeaderScenario(
+            [new StandardHeader { Name = "X-Standard-Test", Value = "standard-value" }],
+            [new SecretHeader { Name = "X-Secret-Test", Value = "secret-value" }],
+            "standard-value",
+            "secret-value");
 
     [TestMethod]
     public async Task TestFileDownload_Certification()
@@ -586,6 +618,59 @@ public class UnitTests
         Assert.IsTrue(result.Success);
     }
 
+    private static void AssertRequestHeader(HttpRequestMessage request, string name, string expectedValue)
+    {
+        var hasHeader = request.Headers.TryGetValues(name, out var values);
+        Assert.AreEqual(expectedValue != null, hasHeader);
+        if (expectedValue != null)
+            Assert.AreEqual(expectedValue, string.Join(",", values));
+    }
+
+    private static async Task AssertHeaderScenario(
+        StandardHeader[] headers,
+        SecretHeader[] secretHeaders,
+        string standardValue,
+        string secretValue)
+    {
+        var handler = new MockHttpMessageHandler();
+        handler.Expect(HttpMethod.Get, HeaderTestAddress).Respond(request =>
+        {
+            AssertRequestHeader(request, "X-Standard-Test", standardValue);
+            AssertRequestHeader(request, "X-Secret-Test", secretValue);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(Array.Empty<byte>()),
+            };
+        });
+
+        var clientFactory = HTTP.ClientFactory;
+        HTTP.ClearClientCache();
+        try
+        {
+            HTTP.ClientFactory = new TestHttpClientFactory(handler);
+
+            var input = new Input
+            {
+                Url = HeaderTestAddress,
+                FilePath = Path.Combine(TestDirectory, "headers.txt"),
+                Headers = headers,
+                SecretHeaders = secretHeaders,
+            };
+            var result = await HTTP.DownloadFile(
+                input,
+                new Options { ConnectionTimeoutSeconds = 60, Overwrite = true },
+                default);
+
+            handler.VerifyNoOutstandingExpectation();
+            Assert.IsTrue(result.Success);
+        }
+        finally
+        {
+            HTTP.ClearClientCache();
+            HTTP.ClientFactory = clientFactory;
+        }
+    }
+
     private static string CertificateHandler(string path, string password, bool cleanUp, string thumbPrint)
     {
         try
@@ -632,5 +717,10 @@ public class UnitTests
         {
             throw new Exception(ex.Message);
         }
+    }
+
+    private sealed class TestHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(Options options) => new(handler);
     }
 }
