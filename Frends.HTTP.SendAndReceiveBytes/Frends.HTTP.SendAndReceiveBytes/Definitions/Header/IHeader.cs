@@ -1,19 +1,19 @@
-﻿namespace Frends.HTTP.Request.Definitions;
+namespace Frends.HTTP.SendAndReceiveBytes.Definitions.Header;
 
 /// <summary>
-/// Request header.
+/// Interface for request header.
 /// </summary>
-public class Header
+public interface IHeader
 {
     /// <summary>
     /// Name of header.
     /// </summary>
     /// <example>Content-Type</example>
-    public string Name { get; set; }
+    string Name { get; set; }
 
     /// <summary>
     /// Value of header.
     /// </summary>
     /// <example>application/json</example>
-    public string Value { get; set; }
+    string Value { get; set; }
 }

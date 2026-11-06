@@ -1,5 +1,9 @@
 # Changelog
 
+## [2.1.0] - 2026-11-06
+### Added
+- Added `SecretHeaders` to the Input tab so header values can be treated as secrets in the Frends UI.
+
 ## [2.0.0] - 2026-10-26
 ### Changed
 - Updated the task to target .NET 8.

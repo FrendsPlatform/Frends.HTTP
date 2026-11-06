@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -6,8 +6,10 @@ using System.Net.Http;
 using System.Runtime.Caching;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Frends.HTTP.DownloadFile.Definitions;
+using Frends.HTTP.DownloadFile.Definitions.Header;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Definitions = Frends.HTTP.DownloadFile.Definitions;
 
@@ -16,11 +18,13 @@ namespace Frends.HTTP.DownloadFile.Tests;
 [TestClass]
 public class UnitTests
 {
+    private const string HeaderEchoAddress = "https://httpbin.org/anything";
+
     private static readonly string TestDirectory = Path.Combine(Environment.CurrentDirectory, "testfiles");
     private static readonly string TestFilePath = Path.Combine(TestDirectory, "picture.jpg");
 
     private static readonly string TargetFileAddress =
-        "https://frendsfonts.blob.core.windows.net/images/frendsLogo.png";
+        "https://example.com/";
 
     private readonly string certificatePath =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
@@ -31,6 +35,7 @@ public class UnitTests
     public void TestInitialize()
     {
         HTTP.ClearClientCache();
+        HTTP.ClientFactory = new HttpClientFactory();
         Directory.CreateDirectory(TestDirectory);
     }
 
@@ -212,7 +217,7 @@ public class UnitTests
     {
         var headers = new[]
         {
-            new Header
+            new StandardHeader
             {
                 Name = "foo",
                 Value = "bar",
@@ -285,6 +290,34 @@ public class UnitTests
             }
         }
     }
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendNoCustomHeadersWhenNoneAreConfigured() =>
+        await AssertHeaderScenario(Array.Empty<StandardHeader>(), Array.Empty<SecretHeader>(), null, null);
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendStandardHeaders() =>
+        await AssertHeaderScenario(
+            [new StandardHeader { Name = "X-Standard-Test", Value = "standard-value" }],
+            Array.Empty<SecretHeader>(),
+            "standard-value",
+            null);
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendSecretHeaders() =>
+        await AssertHeaderScenario(
+            Array.Empty<StandardHeader>(),
+            [new SecretHeader { Name = "X-Secret-Test", Value = "secret-value" }],
+            null,
+            "secret-value");
+
+    [TestMethod]
+    public async Task DownloadFileShouldSendStandardAndSecretHeaders() =>
+        await AssertHeaderScenario(
+            [new StandardHeader { Name = "X-Standard-Test", Value = "standard-value" }],
+            [new SecretHeader { Name = "X-Secret-Test", Value = "secret-value" }],
+            "standard-value",
+            "secret-value");
 
     [TestMethod]
     public async Task TestFileDownload_Certification()
@@ -584,6 +617,39 @@ public class UnitTests
         var result = await HTTP.DownloadFile(input, options, default);
 
         Assert.IsTrue(result.Success);
+    }
+
+    private static async Task AssertHeaderScenario(
+        StandardHeader[] headers,
+        SecretHeader[] secretHeaders,
+        string standardValue,
+        string secretValue)
+    {
+        var input = new Input
+        {
+            Url = HeaderEchoAddress,
+            FilePath = Path.Combine(TestDirectory, "headers.json"),
+            Headers = headers,
+            SecretHeaders = secretHeaders,
+        };
+        var result = await HTTP.DownloadFile(
+            input,
+            new Options { ConnectionTimeoutSeconds = 60, Overwrite = true },
+            default);
+
+        Assert.IsTrue(result.Success);
+        using var document = JsonDocument.Parse(File.ReadAllText(result.FilePath));
+        var echoedHeaders = document.RootElement.GetProperty("headers");
+        AssertEchoedHeader(echoedHeaders, "X-Standard-Test", standardValue);
+        AssertEchoedHeader(echoedHeaders, "X-Secret-Test", secretValue);
+    }
+
+    private static void AssertEchoedHeader(JsonElement headers, string name, string expectedValue)
+    {
+        var exists = headers.TryGetProperty(name, out var value);
+        Assert.AreEqual(expectedValue != null, exists);
+        if (expectedValue != null)
+            Assert.AreEqual(expectedValue, value.GetString());
     }
 
     private static string CertificateHandler(string path, string password, bool cleanUp, string thumbPrint)

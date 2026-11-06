@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.RequestBytes.Definitions;
+using Frends.HTTP.RequestBytes.Definitions.Header;
 using Frends.HTTP.RequestBytes.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.RequestBytes.Tests")]
@@ -63,7 +64,8 @@ public static class HTTP
         if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
 
         var httpClient = GetHttpClientForOptions(options);
-        var headers = GetHeaderDictionary(input.Headers, options);
+        var concatHeader = (input.Headers ?? []).Cast<IHeader>().Concat(input.SecretHeaders ?? []).ToArray();
+        var headers = GetHeaderDictionary(concatHeader, options);
 
         using (var content = GetContent(input, headers))
         {
@@ -105,20 +107,20 @@ public static class HTTP
         return allHeaders;
     }
 
-    private static IDictionary<string, string> GetHeaderDictionary(Header[] headers, Options options)
+    private static IDictionary<string, string> GetHeaderDictionary(IHeader[] headers, Options options)
     {
         if (!headers.Any(header => header.Name.ToLower().Equals("authorization")))
         {
-            var authHeader = new Header { Name = "Authorization" };
+            var authHeader = new StandardHeader { Name = "Authorization" };
             switch (options.Authentication)
             {
                 case Authentication.Basic:
                     authHeader.Value = $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"))}";
-                    headers = headers.Concat(new[] { authHeader }).ToArray();
+                    headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
                     break;
                 case Authentication.OAuth:
                     authHeader.Value = $"Bearer {options.Token}";
-                    headers = headers.Concat(new[] { authHeader }).ToArray();
+                    headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
                     break;
             }
         }

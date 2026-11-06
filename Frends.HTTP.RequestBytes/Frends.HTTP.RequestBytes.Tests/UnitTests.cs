@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.RequestBytes.Definitions;
+using Frends.HTTP.RequestBytes.Definitions.Header;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -93,7 +94,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = string.Empty,
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -116,7 +117,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -142,7 +143,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -168,7 +169,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -229,7 +230,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -254,7 +255,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -277,7 +278,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = " http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -309,7 +310,7 @@ public class UnitTests
         {
             Method = Method.GET,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = string.Empty,
         };
         var options = new Options
@@ -338,7 +339,7 @@ public class UnitTests
             Url = "http://localhost:9191/endpoint",
             Headers = new[]
             {
-                new Header()
+                new StandardHeader()
                 {
                     Name = "Authorization",
                     Value = "Basic fooToken",
@@ -362,6 +363,34 @@ public class UnitTests
     }
 
     [TestMethod]
+    public async Task RequestShouldSendNoCustomHeadersWhenNoneAreConfigured() =>
+        await AssertHeaderScenario(Array.Empty<StandardHeader>(), Array.Empty<SecretHeader>(), null, null);
+
+    [TestMethod]
+    public async Task RequestShouldSendStandardHeaders() =>
+        await AssertHeaderScenario(
+            [new StandardHeader { Name = "X-Standard-Test", Value = "standard-value" }],
+            Array.Empty<SecretHeader>(),
+            "standard-value",
+            null);
+
+    [TestMethod]
+    public async Task RequestShouldSendSecretHeaders() =>
+        await AssertHeaderScenario(
+            Array.Empty<StandardHeader>(),
+            [new SecretHeader { Name = "X-Secret-Test", Value = "secret-value" }],
+            null,
+            "secret-value");
+
+    [TestMethod]
+    public async Task RequestShouldSendStandardAndSecretHeaders() =>
+        await AssertHeaderScenario(
+            [new StandardHeader { Name = "X-Standard-Test", Value = "standard-value" }],
+            [new SecretHeader { Name = "X-Secret-Test", Value = "secret-value" }],
+            "standard-value",
+            "secret-value");
+
+    [TestMethod]
     public async Task PatchShouldComeThrough()
     {
         var message = "foo åäö";
@@ -370,7 +399,7 @@ public class UnitTests
         {
             Method = Method.PATCH,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[]
+            Headers = new StandardHeader[]
             {
             },
             Message = message,
@@ -396,7 +425,7 @@ public class UnitTests
         var requestMessage = "åäö!";
         var expectedContentType = $"text/plain; charset={codePageName}";
 
-        var contentType = new Header
+        var contentType = new StandardHeader
         {
             Name = "cONTENT-tYpE",
             Value = expectedContentType,
@@ -405,7 +434,7 @@ public class UnitTests
         {
             Method = Method.POST,
             Url = "http://localhost:9191/endpoint",
-            Headers = new Header[1]
+            Headers = new StandardHeader[1]
             {
                 contentType,
             },
@@ -471,7 +500,7 @@ public class UnitTests
         Method method = Method.GET,
         string url = BasePath,
         string message = "",
-        params Header[] headers)
+        params StandardHeader[] headers)
     {
         return new Input
         {
@@ -480,5 +509,37 @@ public class UnitTests
             Headers = headers,
             Message = message,
         };
+    }
+
+    private static void AssertRequestHeader(HttpRequestMessage request, string name, string expectedValue)
+    {
+        var hasHeader = request.Headers.TryGetValues(name, out var values);
+        ClassicAssert.AreEqual(expectedValue != null, hasHeader);
+        if (expectedValue != null)
+            ClassicAssert.AreEqual(expectedValue, string.Join(",", values));
+    }
+
+    private async Task AssertHeaderScenario(
+        StandardHeader[] headers,
+        SecretHeader[] secretHeaders,
+        string standardValue,
+        string secretValue)
+    {
+        var input = GetInputParams(url: $"{BasePath}/headers", headers: headers);
+        input.SecretHeaders = secretHeaders;
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
+
+        mockHttpMessageHandler.Expect(HttpMethod.Get, input.Url).Respond(request =>
+        {
+            AssertRequestHeader(request, "X-Standard-Test", standardValue);
+            AssertRequestHeader(request, "X-Secret-Test", secretValue);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new ByteArrayContent(Array.Empty<byte>()),
+            };
+        });
+
+        await HTTP.RequestBytes(input, options, CancellationToken.None);
+        mockHttpMessageHandler.VerifyNoOutstandingExpectation();
     }
 }

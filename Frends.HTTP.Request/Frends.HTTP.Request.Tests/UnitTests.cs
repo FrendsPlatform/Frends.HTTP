@@ -11,6 +11,7 @@ using Method = Frends.HTTP.Request.Definitions;
 using Assert = NUnit.Framework.Assert;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using Frends.HTTP.Request.Definitions.Header;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -42,7 +43,7 @@ public class UnitTests
 
     private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = null,
         string message = "",
-        params Header[] headers)
+        params StandardHeader[] headers)
     {
         url ??= BasePath;
 
@@ -113,7 +114,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = "",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -136,7 +137,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/invalid",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -160,7 +161,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/invalid",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -182,7 +183,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/anything",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -204,7 +205,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/anything",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -228,7 +229,7 @@ public class UnitTests
             Url = $"{BasePath}/anything",
             Headers = new[]
             {
-                new Header()
+                new StandardHeader()
                 {
                     Name = "Authorization",
                     Value = "Basic fooToken"
@@ -249,6 +250,113 @@ public class UnitTests
     }
 
     [TestMethod]
+    public async Task RequestShouldSendNoCustomHeadersWhenNoneAreConfigured()
+    {
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = $"{BasePath}/anything",
+            Headers = [],
+            SecretHeaders = [],
+            Message = ""
+        };
+
+        var headers = await GetEchoedRequestHeaders(input);
+
+        ClassicAssert.IsNull(headers["X-Standard-Test"]);
+        ClassicAssert.IsNull(headers["X-Secret-Test"]);
+    }
+
+    [TestMethod]
+    public async Task RequestShouldSendStandardHeaders()
+    {
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = $"{BasePath}/anything",
+            Headers =
+            [
+                new StandardHeader
+                {
+                    Name = "X-Standard-Test",
+                    Value = "standard-value"
+                }
+            ],
+            SecretHeaders = [],
+            Message = ""
+        };
+
+        var headers = await GetEchoedRequestHeaders(input);
+
+        ClassicAssert.AreEqual("standard-value", headers["X-Standard-Test"]?.Value<string>());
+        ClassicAssert.IsNull(headers["X-Secret-Test"]);
+    }
+
+    [TestMethod]
+    public async Task RequestShouldSendSecretHeaders()
+    {
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = $"{BasePath}/anything",
+            Headers = [],
+            SecretHeaders =
+            [
+                new SecretHeader
+                {
+                    Name = "X-Secret-Test",
+                    Value = "secret-value"
+                }
+            ],
+            Message = ""
+        };
+
+        var headers = await GetEchoedRequestHeaders(input);
+
+        ClassicAssert.IsNull(headers["X-Standard-Test"]);
+        ClassicAssert.AreEqual("secret-value", headers["X-Secret-Test"]?.Value<string>());
+    }
+
+    [TestMethod]
+    public async Task RequestShouldSendStandardAndSecretHeaders()
+    {
+        var input = new Input
+        {
+            Method = Method.Method.GET,
+            Url = $"{BasePath}/anything",
+            Headers =
+            [
+                new StandardHeader
+                {
+                    Name = "X-Standard-Test",
+                    Value = "standard-value"
+                }
+            ],
+            SecretHeaders =
+            [
+                new SecretHeader
+                {
+                    Name = "X-Secret-Test",
+                    Value = "secret-value"
+                }
+            ],
+            Message = ""
+        };
+
+        var headers = await GetEchoedRequestHeaders(input);
+
+        ClassicAssert.AreEqual("standard-value", headers["X-Standard-Test"]?.Value<string>());
+        ClassicAssert.AreEqual("secret-value", headers["X-Secret-Test"]?.Value<string>());
+    }
+
+    private static async Task<JObject> GetEchoedRequestHeaders(Input input)
+    {
+        var result = await HTTP.Request(input, new Options { ConnectionTimeoutSeconds = 60 }, CancellationToken.None);
+
+        return JObject.Parse((string)result.Body)["headers"] as JObject;
+    }
+
+    [TestMethod]
     public void RequestShouldAddClientCertificate()
     {
         const string thumbprint = "ABCD";
@@ -256,7 +364,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = BasePath,
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -282,7 +390,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/anything",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -305,7 +413,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/status/200",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -328,7 +436,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/xml",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -355,14 +463,11 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/xml",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.String
         };
-        var options = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
@@ -378,16 +483,11 @@ public class UnitTests
         {
             Method = Method.Method.PATCH,
             Url = $"{BasePath}/anything",
-            Headers = new Header[]
-            {
-            },
+            Headers = new StandardHeader[] { },
             Message = message,
             ResultMethod = ReturnFormat.String
         };
-        var options = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
         var body = JObject.Parse((string)result.Body);
@@ -402,7 +502,7 @@ public class UnitTests
         var requestMessage = "åäö!";
         var expectedContentType = $"text/plain; charset={codePageName}";
 
-        var contentType = new Header
+        var contentType = new StandardHeader
         {
             Name = "cONTENT-tYpE",
             Value = expectedContentType
@@ -411,17 +511,11 @@ public class UnitTests
         {
             Method = Method.Method.POST,
             Url = $"{BasePath}/anything",
-            Headers = new Header[1]
-            {
-                contentType
-            },
+            Headers = new StandardHeader[1] { contentType },
             Message = requestMessage,
             ResultMethod = ReturnFormat.String
         };
-        var options = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
 
@@ -437,10 +531,7 @@ public class UnitTests
             message: "This should not be sent"
         );
 
-        var options = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
         var result = await HTTP.Request(input, options, CancellationToken.None);
         var body = JObject.Parse((string)result.Body);
 
@@ -502,7 +593,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/html",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -526,14 +617,11 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/json",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
-        var options = new Options
-        {
-            ConnectionTimeoutSeconds = 60
-        };
+        var options = new Options { ConnectionTimeoutSeconds = 60 };
 
         var result = await HTTP.Request(input, options, CancellationToken.None);
 

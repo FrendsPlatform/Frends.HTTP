@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Frends.HTTP.DownloadFile.Definitions.Header;
 
 namespace Frends.HTTP.DownloadFile.Definitions;
 
@@ -21,7 +22,13 @@ public class Input
     /// List of HTTP headers to be added to the request.
     /// </summary>
     /// <example>[ { Name = "Content-Type", Value = "application/json" }, { Name = "Accept", Value = "application/json"  } ]</example>
-    public Header[] Headers { get; set; }
+    public StandardHeader[] Headers { get; set; } = [];
+
+    /// <summary>
+    /// List of HTTP headers treated as secrets, which will be added to the request.
+    /// </summary>
+    /// <example>Name: Header, Value: SecretValue</example>
+    public SecretHeader[] SecretHeaders { get; set; } = [];
 
     /// <summary>
     /// Exact location and name of the file to be created.

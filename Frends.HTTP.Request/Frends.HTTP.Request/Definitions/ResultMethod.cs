@@ -10,8 +10,9 @@ public enum ReturnFormat
     /// HTTP result as a string.
     /// </summary>
     String,
+
     /// <summary>
     /// REST result as an JToken.
     /// </summary>
-    JToken
+    JToken,
 }

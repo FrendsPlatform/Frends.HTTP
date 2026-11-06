@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Frends.HTTP.RequestBytes.Definitions.Header;
 
 namespace Frends.HTTP.RequestBytes.Definitions;
 
@@ -34,5 +35,11 @@ public class Input
     /// List of HTTP headers to be added to the request.
     /// </summary>
     /// <example>Name: Header, Value: HeaderValue</example>
-    public Header[] Headers { get; set; }
+    public StandardHeader[] Headers { get; set; } = [];
+
+    /// <summary>
+    /// List of HTTP headers treated as secrets, which will be added to the request.
+    /// </summary>
+    /// <example>Name: Header, Value: SecretValue</example>
+    public SecretHeader[] SecretHeaders { get; set; } = [];
 }
