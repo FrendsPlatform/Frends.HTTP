@@ -6,11 +6,11 @@ using System.Net.Http;
 using System.Runtime.Caching;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Frends.HTTP.DownloadFile.Definitions;
 using Frends.HTTP.DownloadFile.Definitions.Header;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using RichardSzalay.MockHttp;
 using Definitions = Frends.HTTP.DownloadFile.Definitions;
 
 namespace Frends.HTTP.DownloadFile.Tests;
@@ -18,13 +18,13 @@ namespace Frends.HTTP.DownloadFile.Tests;
 [TestClass]
 public class UnitTests
 {
-    private const string HeaderTestAddress = "http://localhost:9191/headers";
+    private const string HeaderEchoAddress = "https://httpbin.org/anything";
 
     private static readonly string TestDirectory = Path.Combine(Environment.CurrentDirectory, "testfiles");
     private static readonly string TestFilePath = Path.Combine(TestDirectory, "picture.jpg");
 
     private static readonly string TargetFileAddress =
-        "https://frendsfonts.blob.core.windows.net/images/frendsLogo.png";
+        "https://example.com/";
 
     private readonly string certificatePath =
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestFiles", "certwithpk.pfx");
@@ -35,6 +35,7 @@ public class UnitTests
     public void TestInitialize()
     {
         HTTP.ClearClientCache();
+        HTTP.ClientFactory = new HttpClientFactory();
         Directory.CreateDirectory(TestDirectory);
     }
 
@@ -618,57 +619,37 @@ public class UnitTests
         Assert.IsTrue(result.Success);
     }
 
-    private static void AssertRequestHeader(HttpRequestMessage request, string name, string expectedValue)
-    {
-        var hasHeader = request.Headers.TryGetValues(name, out var values);
-        Assert.AreEqual(expectedValue != null, hasHeader);
-        if (expectedValue != null)
-            Assert.AreEqual(expectedValue, string.Join(",", values));
-    }
-
     private static async Task AssertHeaderScenario(
         StandardHeader[] headers,
         SecretHeader[] secretHeaders,
         string standardValue,
         string secretValue)
     {
-        var handler = new MockHttpMessageHandler();
-        handler.Expect(HttpMethod.Get, HeaderTestAddress).Respond(request =>
+        var input = new Input
         {
-            AssertRequestHeader(request, "X-Standard-Test", standardValue);
-            AssertRequestHeader(request, "X-Secret-Test", secretValue);
-            return new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new ByteArrayContent(Array.Empty<byte>()),
-            };
-        });
+            Url = HeaderEchoAddress,
+            FilePath = Path.Combine(TestDirectory, "headers.json"),
+            Headers = headers,
+            SecretHeaders = secretHeaders,
+        };
+        var result = await HTTP.DownloadFile(
+            input,
+            new Options { ConnectionTimeoutSeconds = 60, Overwrite = true },
+            default);
 
-        var clientFactory = HTTP.ClientFactory;
-        HTTP.ClearClientCache();
-        try
-        {
-            HTTP.ClientFactory = new TestHttpClientFactory(handler);
+        Assert.IsTrue(result.Success);
+        using var document = JsonDocument.Parse(File.ReadAllText(result.FilePath));
+        var echoedHeaders = document.RootElement.GetProperty("headers");
+        AssertEchoedHeader(echoedHeaders, "X-Standard-Test", standardValue);
+        AssertEchoedHeader(echoedHeaders, "X-Secret-Test", secretValue);
+    }
 
-            var input = new Input
-            {
-                Url = HeaderTestAddress,
-                FilePath = Path.Combine(TestDirectory, "headers.txt"),
-                Headers = headers,
-                SecretHeaders = secretHeaders,
-            };
-            var result = await HTTP.DownloadFile(
-                input,
-                new Options { ConnectionTimeoutSeconds = 60, Overwrite = true },
-                default);
-
-            handler.VerifyNoOutstandingExpectation();
-            Assert.IsTrue(result.Success);
-        }
-        finally
-        {
-            HTTP.ClearClientCache();
-            HTTP.ClientFactory = clientFactory;
-        }
+    private static void AssertEchoedHeader(JsonElement headers, string name, string expectedValue)
+    {
+        var exists = headers.TryGetProperty(name, out var value);
+        Assert.AreEqual(expectedValue != null, exists);
+        if (expectedValue != null)
+            Assert.AreEqual(expectedValue, value.GetString());
     }
 
     private static string CertificateHandler(string path, string password, bool cleanUp, string thumbPrint)
@@ -717,10 +698,5 @@ public class UnitTests
         {
             throw new Exception(ex.Message);
         }
-    }
-
-    private sealed class TestHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
-    {
-        public HttpClient CreateClient(Options options) => new(handler);
     }
 }
