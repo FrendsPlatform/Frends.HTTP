@@ -11,6 +11,7 @@ using Method = Frends.HTTP.Request.Definitions;
 using Assert = NUnit.Framework.Assert;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using Frends.HTTP.Request.Definitions.Header;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
@@ -42,7 +43,7 @@ public class UnitTests
 
     private static Input GetInputParams(Method.Method method = Method.Method.GET, string url = null,
         string message = "",
-        params Header[] headers)
+        params StandardHeader[] headers)
     {
         url ??= BasePath;
 
@@ -113,7 +114,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = "",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -136,7 +137,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/invalid",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -160,7 +161,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/invalid",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -182,7 +183,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/anything",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -204,7 +205,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/anything",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = ""
         };
         var options = new Options
@@ -228,7 +229,7 @@ public class UnitTests
             Url = $"{BasePath}/anything",
             Headers = new[]
             {
-                new Header()
+                new StandardHeader()
                 {
                     Name = "Authorization",
                     Value = "Basic fooToken"
@@ -256,7 +257,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = BasePath,
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -282,7 +283,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/anything",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -305,7 +306,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/status/200",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -328,7 +329,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/xml",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -355,7 +356,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/xml",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.String
         };
@@ -378,7 +379,7 @@ public class UnitTests
         {
             Method = Method.Method.PATCH,
             Url = $"{BasePath}/anything",
-            Headers = new Header[]
+            Headers = new StandardHeader[]
             {
             },
             Message = message,
@@ -402,7 +403,7 @@ public class UnitTests
         var requestMessage = "åäö!";
         var expectedContentType = $"text/plain; charset={codePageName}";
 
-        var contentType = new Header
+        var contentType = new StandardHeader
         {
             Name = "cONTENT-tYpE",
             Value = expectedContentType
@@ -411,7 +412,7 @@ public class UnitTests
         {
             Method = Method.Method.POST,
             Url = $"{BasePath}/anything",
-            Headers = new Header[1]
+            Headers = new StandardHeader[1]
             {
                 contentType
             },
@@ -502,7 +503,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/html",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };
@@ -526,7 +527,7 @@ public class UnitTests
         {
             Method = Method.Method.GET,
             Url = $"{BasePath}/json",
-            Headers = new Header[0],
+            Headers = new StandardHeader[0],
             Message = "",
             ResultMethod = ReturnFormat.JToken
         };

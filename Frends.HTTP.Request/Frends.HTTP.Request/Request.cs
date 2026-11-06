@@ -16,6 +16,7 @@ using System.Runtime.CompilerServices;
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography.X509Certificates;
 using Frends.HTTP.Request.Definitions;
+using Frends.HTTP.Request.Definitions.Header;
 using Frends.HTTP.Request.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
@@ -68,7 +69,9 @@ public static class HTTP
             if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException(nameof(input), "Url can not be empty.");
 
             httpClient = GetHttpClientForOptions(options);
-            var headers = GetHeaderDictionary(input.Headers, options);
+            var standardHeaders = GetHeaderDictionary(input.Headers, options);
+            var secretHeaders = GetHeaderDictionary(input.SecretHeaders, options);
+            var headers = standardHeaders.Concat(secretHeaders).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
             httpContent = GetContent(input, headers);
             using var responseMessage = await GetHttpRequestResponseAsync(
@@ -155,11 +158,11 @@ public static class HTTP
         return allHeaders;
     }
 
-    private static IDictionary<string, string> GetHeaderDictionary(Header[] headers, Options options)
+    private static IDictionary<string, string> GetHeaderDictionary(IHeader[] headers, Options options)
     {
         if (!headers.Any(header => header.Name.ToLower().Equals("authorization")))
         {
-            var authHeader = new Header
+            var authHeader = new StandardHeader
             {
                 Name = "Authorization"
             };

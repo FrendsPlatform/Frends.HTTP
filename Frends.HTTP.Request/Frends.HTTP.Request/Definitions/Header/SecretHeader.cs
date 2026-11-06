@@ -1,9 +1,11 @@
-﻿namespace Frends.HTTP.Request.Definitions;
+﻿using System.ComponentModel;
+
+namespace Frends.HTTP.Request.Definitions.Header;
 
 /// <summary>
-/// Request header.
+/// Request header, with value treated as a secret.
 /// </summary>
-public class Header
+public class SecretHeader : IHeader
 {
     /// <summary>
     /// Name of header.
@@ -12,8 +14,9 @@ public class Header
     public string Name { get; set; }
 
     /// <summary>
-    /// Value of header.
+    /// Value of header treated as a secret.
     /// </summary>
     /// <example>application/json</example>
+    [PasswordPropertyText]
     public string Value { get; set; }
 }

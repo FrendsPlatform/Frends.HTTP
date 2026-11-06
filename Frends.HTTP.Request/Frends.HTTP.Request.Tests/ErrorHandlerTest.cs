@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Frends.HTTP.Request.Definitions;
+using Frends.HTTP.Request.Definitions.Header;
 using NUnit.Framework;
 
 namespace Frends.HTTP.Request.Tests;
@@ -15,7 +16,7 @@ internal class ErrorHandlerTest
     {
         Method = Method.GET,
         Url = InvalidUrl,
-        Headers = Array.Empty<Header>(),
+        Headers = Array.Empty<StandardHeader>(),
         Message = string.Empty,
     };
 
