@@ -1,22 +1,23 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Runtime.Caching;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System.Diagnostics;
-using System.Net.Http;
-using System.Runtime.Caching;
-using System.Runtime.CompilerServices;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography.X509Certificates;
 using Frends.HTTP.Request.Definitions;
+using Frends.HTTP.Request.Definitions.Header;
 using Frends.HTTP.Request.Helpers;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.Request.Tests")]
 
@@ -34,31 +35,18 @@ public static class HTTP
         SlidingExpiration = TimeSpan.FromHours(1),
     };
 
-
-
-    internal static void ClearClientCache()
-    {
-        var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
-
-        foreach (var cacheKey in cacheKeys)
-        {
-            ClientCache.Remove(cacheKey);
-        }
-    }
-
     /// <summary>
     /// Frends Task for executing HTTP requests with String or JSON payload.
     /// [Documentation](https://tasks.frends.com/tasks/frends-tasks/Frends.HTTP.Request)
     /// </summary>
-    /// <param name="input"></param>
-    /// <param name="options"></param>
-    /// <param name="cancellationToken"/>
+    /// <param name="input">The HTTP request settings and payload.</param>
+    /// <param name="options">Authentication, connection, and response-handling options.</param>
+    /// <param name="cancellationToken">A token that cancels the HTTP request.</param>
     /// <returns>Object { dynamic Body, Dictionary(string, string) Headers, int StatusCode }</returns>
     public static async Task<Result> Request(
         [PropertyTab] Input input,
         [PropertyTab] Options options,
-        CancellationToken cancellationToken
-    )
+        CancellationToken cancellationToken)
     {
         HttpClient httpClient = null;
         HttpContent httpContent = null;
@@ -68,7 +56,8 @@ public static class HTTP
             if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException(nameof(input), "Url can not be empty.");
 
             httpClient = GetHttpClientForOptions(options);
-            var headers = GetHeaderDictionary(input.Headers, options);
+            var concatHeader = (input.Headers ?? []).Cast<IHeader>().Concat(input.SecretHeaders ?? []).ToArray();
+            var headers = GetHeaderDictionary(concatHeader, options);
 
             httpContent = GetContent(input, headers);
             using var responseMessage = await GetHttpRequestResponseAsync(
@@ -95,7 +84,7 @@ public static class HTTP
                         Success = true,
                         Body = hbody,
                         Headers = hheaders,
-                        StatusCode = hstatusCode
+                        StatusCode = hstatusCode,
                     };
 
                     break;
@@ -143,8 +132,19 @@ public static class HTTP
         }
     }
 
+    internal static void ClearClientCache()
+    {
+        var cacheKeys = ClientCache.Select(kvp => kvp.Key).ToList();
+
+        foreach (var cacheKey in cacheKeys)
+        {
+            ClientCache.Remove(cacheKey);
+        }
+    }
+
     // Combine response- and responsecontent header to one dictionary
-    private static Dictionary<string, string> GetResponseHeaderDictionary(HttpResponseHeaders responseMessageHeaders,
+    private static Dictionary<string, string> GetResponseHeaderDictionary(
+        HttpResponseHeaders responseMessageHeaders,
         HttpContentHeaders contentHeaders)
     {
         var responseHeaders = responseMessageHeaders.ToDictionary(h => h.Key, h => string.Join(";", h.Value));
@@ -155,13 +155,13 @@ public static class HTTP
         return allHeaders;
     }
 
-    private static IDictionary<string, string> GetHeaderDictionary(Header[] headers, Options options)
+    private static IDictionary<string, string> GetHeaderDictionary(IHeader[] headers, Options options)
     {
         if (!headers.Any(header => header.Name.ToLower().Equals("authorization")))
         {
-            var authHeader = new Header
+            var authHeader = new StandardHeader
             {
-                Name = "Authorization"
+                Name = "Authorization",
             };
 
             switch (options.Authentication)
@@ -171,7 +171,7 @@ public static class HTTP
                         $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"))}";
                     headers = headers.Concat(new[]
                     {
-                        authHeader
+                        authHeader,
                     }).ToArray();
 
                     break;
@@ -179,14 +179,14 @@ public static class HTTP
                     authHeader.Value = $"Bearer {options.Token}";
                     headers = headers.Concat(new[]
                     {
-                        authHeader
+                        authHeader,
                     }).ToArray();
 
                     break;
             }
         }
 
-        //Ignore case for headers and key comparison
+        // Ignore case for headers and key comparison
         return headers.ToDictionary(key => key.Name, value => value.Value, StringComparer.InvariantCultureIgnoreCase);
     }
 
@@ -194,7 +194,7 @@ public static class HTTP
     {
         var methodsWithBody = new[]
         {
-            Method.POST, Method.PUT, Method.PATCH, Method.DELETE
+            Method.POST, Method.PUT, Method.PATCH, Method.DELETE,
         };
 
         if (!methodsWithBody.Contains(input.Method))
@@ -208,8 +208,11 @@ public static class HTTP
                 MediaTypeWithQualityHeaderValue.TryParse(contentTypeValue, out var validContentType);
 
             if (contentTypeIsSetAndValid)
-                return new StringContent(input.Message ?? string.Empty,
+            {
+                return new StringContent(
+                    input.Message ?? string.Empty,
                     Encoding.GetEncoding(validContentType.CharSet ?? Encoding.UTF8.WebName));
+            }
         }
 
         return new StringContent(input.Message ?? string.Empty);
@@ -218,7 +221,7 @@ public static class HTTP
     private static object TryParseBody(string responseBody)
     {
         if (string.IsNullOrWhiteSpace(responseBody))
-            return new JValue("");
+            return new JValue(string.Empty);
 
         try
         {
@@ -278,16 +281,20 @@ public static class HTTP
     }
 
     private static async Task<HttpResponseMessage> GetHttpRequestResponseAsync(
-        HttpClient client, string method, string url,
-        HttpContent content, IDictionary<string, string> headers,
-        Options options, CancellationToken cancellationToken)
+        HttpClient client,
+        string method,
+        string url,
+        HttpContent content,
+        IDictionary<string, string> headers,
+        Options options,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var httpRequestMessage = new HttpRequestMessage(new HttpMethod(method), new Uri(url));
         httpRequestMessage.Content = content;
 
-        //Clear default headers
+        // Clear default headers
         content.Headers.Clear();
 
         foreach (var header in headers)
@@ -297,13 +304,13 @@ public static class HTTP
 
             if (!requestHeaderAddedSuccessfully)
             {
-                //Could not add to request headers try to add to content headers
+                // Could not add to request headers try to add to content headers
                 // this check is probably not needed anymore as the new HttpClient does not seem fail on malformed headers
                 var contentHeaderAddedSuccessfully = content.Headers.TryAddWithoutValidation(header.Key, header.Value);
 
                 if (!contentHeaderAddedSuccessfully)
                 {
-                    Trace.TraceWarning($"Could not add header {header.Key}:{header.Value}");
+                    Trace.TraceWarning($"Could not add header {header.Key}");
                 }
             }
         }
@@ -324,7 +331,6 @@ public static class HTTP
             // Cancellation is from inside the request, mostly likely a timeout
             throw new Exception("HttpRequest was canceled, most likely due to a timeout.", canceledException);
         }
-
 
         // this check is probably not needed anymore as the new HttpClient does not fail on invalid charsets
         if (options.AllowInvalidResponseContentTypeCharSet && httpResponseMessage.Content.Headers.ContentType != null)

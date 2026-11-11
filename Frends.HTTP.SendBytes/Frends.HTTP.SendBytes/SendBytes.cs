@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.SendBytes.Definitions;
+using Frends.HTTP.SendBytes.Definitions.Header;
 using Frends.HTTP.SendBytes.Helpers;
 
 [assembly: InternalsVisibleTo("Frends.HTTP.SendBytes.Tests")]
@@ -43,7 +44,8 @@ public static class HTTP
             if (string.IsNullOrEmpty(input.Url)) throw new ArgumentNullException("Url can not be empty.");
 
             var httpClient = GetHttpClientForOptions(options);
-            var headers = GetHeaderDictionary(input.Headers, options);
+            var concatHeader = (input.Headers ?? []).Cast<IHeader>().Concat(input.SecretHeaders ?? []).ToArray();
+            var headers = GetHeaderDictionary(concatHeader, options);
 
             using var content = new ByteArrayContent(input.ContentBytes);
             using var responseMessage = await GetHttpRequestResponseAsync(
@@ -93,20 +95,20 @@ public static class HTTP
         return allHeaders;
     }
 
-    private static IDictionary<string, string> GetHeaderDictionary(Header[] headers, Options options)
+    private static IDictionary<string, string> GetHeaderDictionary(IHeader[] headers, Options options)
     {
         if (!headers.Any(header => header.Name.ToLower().Equals("authorization")))
         {
-            var authHeader = new Header { Name = "Authorization" };
+            var authHeader = new StandardHeader { Name = "Authorization" };
             switch (options.Authentication)
             {
                 case Authentication.Basic:
                     authHeader.Value = $"Basic {Convert.ToBase64String(Encoding.ASCII.GetBytes($"{options.Username}:{options.Password}"))}";
-                    headers = headers.Concat(new[] { authHeader }).ToArray();
+                    headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
                     break;
                 case Authentication.OAuth:
                     authHeader.Value = $"Bearer {options.Token}";
-                    headers = headers.Concat(new[] { authHeader }).ToArray();
+                    headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
                     break;
             }
         }
@@ -181,7 +183,7 @@ public static class HTTP
                 // this check is probably not needed anymore as the new HttpClient does not seem fail on malformed headers
                 var contentHeaderAddedSuccessfully = content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 if (!contentHeaderAddedSuccessfully)
-                    Trace.TraceWarning($"Could not add header {header.Key}:{header.Value}");
+                    Trace.TraceWarning($"Could not add header {header.Key}");
             }
         }
 

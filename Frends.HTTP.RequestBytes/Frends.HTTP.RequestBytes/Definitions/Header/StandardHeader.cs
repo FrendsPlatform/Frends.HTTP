@@ -1,9 +1,9 @@
-namespace Frends.HTTP.SendBytes.Definitions;
+namespace Frends.HTTP.RequestBytes.Definitions.Header;
 
 /// <summary>
 /// Request header.
 /// </summary>
-public class Header
+public class StandardHeader : IHeader
 {
     /// <summary>
     /// Name of header.
@@ -14,6 +14,6 @@ public class Header
     /// <summary>
     /// Value of header.
     /// </summary>
-    /// <example>application/octet-stream</example>
+    /// <example>application/json</example>
     public string Value { get; set; }
 }

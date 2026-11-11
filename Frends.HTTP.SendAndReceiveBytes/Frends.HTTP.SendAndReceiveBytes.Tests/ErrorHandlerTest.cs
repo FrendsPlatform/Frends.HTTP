@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.SendAndReceiveBytes.Definitions;
+using Frends.HTTP.SendAndReceiveBytes.Definitions.Header;
 using NUnit.Framework;
 
 namespace Frends.HTTP.SendAndReceiveBytes.Tests;
@@ -41,7 +42,7 @@ internal class ErrorHandlerTest
     {
         Method = Method.POST,
         Url = string.Empty,
-        Headers = Array.Empty<Header>(),
+        Headers = Array.Empty<StandardHeader>(),
         ContentBytes = Array.Empty<byte>(),
     };
 }

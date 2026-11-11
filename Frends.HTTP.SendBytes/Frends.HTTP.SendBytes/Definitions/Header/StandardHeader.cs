@@ -1,19 +1,19 @@
-namespace Frends.HTTP.DownloadFile.Definitions;
+namespace Frends.HTTP.SendBytes.Definitions.Header;
 
 /// <summary>
 /// Request header.
 /// </summary>
-public class Header
+public class StandardHeader : IHeader
 {
     /// <summary>
     /// Name of header.
     /// </summary>
-    /// <example>foo</example>
+    /// <example>Content-Type</example>
     public string Name { get; set; }
 
     /// <summary>
     /// Value of header.
     /// </summary>
-    /// <example>bar</example>
+    /// <example>application/json</example>
     public string Value { get; set; }
 }

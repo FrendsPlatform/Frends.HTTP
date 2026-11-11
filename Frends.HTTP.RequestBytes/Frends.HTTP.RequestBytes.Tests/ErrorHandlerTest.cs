@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Frends.HTTP.RequestBytes.Definitions;
+using Frends.HTTP.RequestBytes.Definitions.Header;
 using NUnit.Framework;
 
 namespace Frends.HTTP.RequestBytes.Tests;
@@ -12,7 +13,7 @@ public class ErrorHandlerTest
     [Test]
     public void ShouldThrowWhenThrowErrorOnFailureIsTrue()
     {
-        var input = new Input { Url = string.Empty, Headers = Array.Empty<Header>() };
+        var input = new Input { Url = string.Empty, Headers = Array.Empty<StandardHeader>() };
         var options = new Options { ThrowErrorOnFailure = true };
 
         Assert.ThrowsAsync<ArgumentNullException>(() => HTTP.RequestBytes(input, options, CancellationToken.None));
@@ -21,7 +22,7 @@ public class ErrorHandlerTest
     [Test]
     public async Task ShouldReturnFailedResultWhenThrowErrorOnFailureIsFalse()
     {
-        var input = new Input { Url = string.Empty, Headers = Array.Empty<Header>() };
+        var input = new Input { Url = string.Empty, Headers = Array.Empty<StandardHeader>() };
         var options = new Options { ThrowErrorOnFailure = false, ErrorMessageOnFailure = "Request failed" };
 
         var result = await HTTP.RequestBytes(input, options, CancellationToken.None);
@@ -34,7 +35,7 @@ public class ErrorHandlerTest
     [Test]
     public void ShouldThrowCustomMessageWhenConfigured()
     {
-        var input = new Input { Url = string.Empty, Headers = Array.Empty<Header>() };
+        var input = new Input { Url = string.Empty, Headers = Array.Empty<StandardHeader>() };
         var options = new Options { ThrowErrorOnFailure = true, ErrorMessageOnFailure = "Custom" };
 
         var ex = Assert.ThrowsAsync<Exception>(() => HTTP.RequestBytes(input, options, CancellationToken.None));
