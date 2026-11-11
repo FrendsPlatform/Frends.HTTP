@@ -67,7 +67,7 @@ public static class HTTP
                 {
                     var requestHeaderAddedSuccessfully = httpClient.DefaultRequestHeaders.TryAddWithoutValidation(header.Key, header.Value);
                     if (!requestHeaderAddedSuccessfully)
-                        Trace.TraceWarning($"Could not add header {header.Key}:{header.Value}");
+                        Trace.TraceWarning($"Could not add header {header.Key}");
                 }
             }
 
@@ -104,7 +104,7 @@ public static class HTTP
                     headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
                     break;
                 case Authentication.OAuth:
-                    authHeader.Value = "******";
+                    authHeader.Value = $"Bearer {options.Token}";
                     headers = headers.Concat(new IHeader[] { authHeader }).ToArray();
                     break;
             }

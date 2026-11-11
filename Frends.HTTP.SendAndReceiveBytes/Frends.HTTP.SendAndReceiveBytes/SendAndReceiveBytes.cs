@@ -185,7 +185,7 @@ public static class HTTP
                 // this check is probably not needed anymore as the new HttpClient does not seem fail on malformed headers
                 var contentHeaderAddedSuccessfully = content.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 if (!contentHeaderAddedSuccessfully)
-                    Trace.TraceWarning($"Could not add header {header.Key}:{header.Value}");
+                    Trace.TraceWarning($"Could not add header {header.Key}");
             }
         }
 

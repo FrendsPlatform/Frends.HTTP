@@ -310,7 +310,7 @@ public static class HTTP
 
                 if (!contentHeaderAddedSuccessfully)
                 {
-                    Trace.TraceWarning($"Could not add header {header.Key}:{header.Value}");
+                    Trace.TraceWarning($"Could not add header {header.Key}");
                 }
             }
         }

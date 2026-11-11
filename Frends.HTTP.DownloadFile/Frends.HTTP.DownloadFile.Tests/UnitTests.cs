@@ -320,6 +320,19 @@ public class UnitTests
             "secret-value");
 
     [TestMethod]
+    public async Task DownloadFileShouldSendOAuthBearerToken()
+    {
+        await AssertHeaderScenario(
+            Array.Empty<StandardHeader>(),
+            Array.Empty<SecretHeader>(),
+            null,
+            null,
+            "Bearer test-token",
+            Authentication.OAuth,
+            "test-token");
+    }
+
+    [TestMethod]
     public async Task TestFileDownload_Certification()
     {
         var certSources = new List<CertificateSource>
@@ -623,7 +636,10 @@ public class UnitTests
         StandardHeader[] headers,
         SecretHeader[] secretHeaders,
         string standardValue,
-        string secretValue)
+        string secretValue,
+        string authorizationValue = null,
+        Authentication authentication = Authentication.None,
+        string token = null)
     {
         var input = new Input
         {
@@ -634,7 +650,13 @@ public class UnitTests
         };
         var result = await HTTP.DownloadFile(
             input,
-            new Options { ConnectionTimeoutSeconds = 60, Overwrite = true },
+            new Options
+            {
+                Authentication = authentication,
+                ConnectionTimeoutSeconds = 60,
+                Overwrite = true,
+                Token = token,
+            },
             default);
 
         Assert.IsTrue(result.Success);
@@ -642,6 +664,7 @@ public class UnitTests
         var echoedHeaders = document.RootElement.GetProperty("headers");
         AssertEchoedHeader(echoedHeaders, "X-Standard-Test", standardValue);
         AssertEchoedHeader(echoedHeaders, "X-Secret-Test", secretValue);
+        AssertEchoedHeader(echoedHeaders, "Authorization", authorizationValue);
     }
 
     private static void AssertEchoedHeader(JsonElement headers, string name, string expectedValue)

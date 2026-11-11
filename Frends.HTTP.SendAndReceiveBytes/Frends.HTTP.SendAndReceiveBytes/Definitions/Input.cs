@@ -39,6 +39,6 @@ public class Input
     /// <summary>
     /// List of HTTP headers treated as secrets, which will be added to the request.
     /// </summary>
-    /// <example>Name: Header, Value: SecretValue</example>
+    /// <example>[ { Name = "x-api-key", Value = "my-secret-key" } ]</example>
     public SecretHeader[] SecretHeaders { get; set; } = [];
 }
